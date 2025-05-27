@@ -1,46 +1,43 @@
-# MicroWins Progress & Analytics
+# MicroWins - Small Goal Tracking App
 
-This module implements the progress tracking and analytics feature for the MicroWins app. It allows users to view their goal completion history, streaks, and statistics.
+This app helps users break big goals into 100 micro-steps to make progress every day.
 
-## Installation
+## Frontend Setup
 
-1. Navigate to the `frontend` directory
-2. Run `npm install` to install the required dependencies
+1. Install dependencies:
+```
+cd frontend
+npm install
+```
 
-## Usage
+2. Run the app:
+```
+npm start
+```
 
-1. Import the `ProgressScreen` component into your app's navigation flow
-2. Ensure the Redux store is set up and the `progressReducer` is included
-3. Navigate to the Progress screen to view the analytics
+## Backend Setup 
 
-## Components
+1. Install dependencies:
+```
+cd backend 
+npm install
+```
 
-### ProgressScreen
+2. Set OpenAI API Key:
+```
+export OPENAI_API_KEY=your_api_key_here
+```
 
-The main screen component that displays the user's progress analytics, including:
-- Line chart of daily goal completions over time
-- Calendar heat map of completions
-- Current and longest streak statistics 
-- Completion rate percentage
-- Option to share progress screenshot
+3. Start the server:
+```
+npm start
+```
 
-### progressSlice
+## Features
 
-The Redux slice that manages the progress state, including:
-- `completedTasks` array to store task completion history
-- `currentStreak` and `longestStreak` to track streak data
-- Reducers to add completed tasks and update streak counts
-
-## Dependencies
-
-- `@reduxjs/toolkit` and `react-redux` for state management
-- `victory-native` for chart rendering
-- `react-native-calendar-heatmap` for calendar heat map
-- `react-native-view-shot` for capturing progress screenshot
-- `date-fns` for date manipulation utilities
-
-## Customization
-
-- Modify the `styles` object in `ProgressScreen` to adjust the look and feel
-- Update the chart configuration in the `renderChart` method to change chart style and behavior
-- Adjust the heatmap and streak logic in `progressSlice` to match your app's needs
+- Natural language goal input
+- Generates 100 steps using OpenAI
+- Preview and edit steps before starting 
+- Simple, intuitive UI
+- Optimistic updates for responsive UX
+- Draft goal state saved locally
