@@ -1,45 +1,55 @@
-# Task Completion Interface
+# MicroWins Frontend
 
-This interface allows users to complete their daily micro-steps, skip steps, or swap for alternative tasks. It tracks progress and provides a satisfying completion experience.
+This is the frontend React Native application for MicroWins, a goal tracking app that breaks down big goals into small, achievable steps.
 
-## Features
+## Getting Started
 
-- Displays current step number and total steps 
-- Shows task title, description, and expandable tips
-- Complete button with loading state
-- Skip button with confirmation dialog
-- Swap button to get alternative task
-- Success animation on task completion
-- Auto-navigates to home screen after completion
+### Prerequisites
 
-## Setup
+- Node.js 14+ and npm
+- Expo CLI: `npm install -g expo-cli`
+- Expo Go app on your iOS or Android device for previewing
 
-1. Install dependencies:
+### Installation
+
+1. Clone the repository:
    ```
+   git clone https://github.com/yourusername/microwins-frontend.git
+   ```
+
+2. Install dependencies:
+   ```
+   cd microwins-frontend
    npm install
    ```
 
-2. Place the Lottie success animation JSON file at `src/animations/success.json`.
+### Running the App
 
-3. Update the `BASE_URL` in `src/services/Api.js` to point to your backend API.
-
-4. Run the app:
+1. Start the development server:
    ```
    npm start
    ```
 
-## Usage
+2. Scan the QR code in the terminal with the Expo Go app on your device to preview the app. Alternatively, press `i` to open the iOS simulator or `a` to open the Android emulator.
 
-- The task data is loaded from Redux state, which is populated by the backend API.
-- Clicking "Complete" will call the `completeTask` API endpoint and show a loading state.
-- Clicking "Skip" will prompt a confirmation dialog, then call `skipTask` on confirm.
-- Clicking "Swap Task" will call `getAlternativeTask` and update the current step.
-- On completion, a success animation is played, and the user is navigated to the home screen.
+## Project Structure
 
-## Code Structure
+- `src/screens`: Contains the main screens of the app
+- `src/components`: Reusable components used across screens
+- `src/store`: Redux store setup and slices for state management
+- `src/api`: API client setup and request functions
+- `src/types`: TypeScript type definitions
+- `src/theme`: Shared styles and theme configuration
+- `src/navigation`: App navigation setup and configuration
 
-- `TaskScreen.js`: The main component for the Task Completion Interface.
-- `TipAccordion.js`: An expandable accordion component for displaying task tips.  
-- `SuccessAnimation.js`: A component that plays a Lottie success animation.
-- `goalSlice.js`: The Redux slice that manages goal state and API actions.
-- `Api.js`: A service module for making API requests related to tasks and goals.
+## Contributing
+
+1. Fork the project repository
+2. Create a new branch: `git checkout -b feature/your-feature`
+3. Make your changes and commit: `git commit -m "Add your commit message"`
+4. Push to the branch: `git push origin feature/your-feature`
+5. Open a pull request
+
+## License
+
+This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for details.
