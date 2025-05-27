@@ -1,66 +1,45 @@
-# Notification Settings
+# Task Completion Interface
 
-This feature allows users to customize their daily goal reminder notifications.
+This interface allows users to complete their daily micro-steps, skip steps, or swap for alternative tasks. It tracks progress and provides a satisfying completion experience.
+
+## Features
+
+- Displays current step number and total steps 
+- Shows task title, description, and expandable tips
+- Complete button with loading state
+- Skip button with confirmation dialog
+- Swap button to get alternative task
+- Success animation on task completion
+- Auto-navigates to home screen after completion
 
 ## Setup
 
-Install required dependencies:
+1. Install dependencies:
+   ```
+   npm install
+   ```
 
-```bash
-npm install @react-native-community/datetimepicker react-native-push-notification
-```
+2. Place the Lottie success animation JSON file at `src/animations/success.json`.
 
-For iOS, add the following to your `AppDelegate.m`:
+3. Update the `BASE_URL` in `src/services/Api.js` to point to your backend API.
 
-```objc
-#import <RNCPushNotificationIOS.h>
-
-// ...
-
-- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
-{
-  // ...
-  
-  [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
-  
-  return YES;
-}
-
-// Required for the register event.
-- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
-{
- [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
-}
-// Required for the notification event. You must call the completion handler after handling the remote notification.
-- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
-fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
-{
-  [RNCPushNotificationIOS didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
-}
-// Required for the registrationError event.
-- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
-{
- [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
-}
-// Required for localNotification event
-- (void)userNotificationCenter:(UNUserNotificationCenter *)center
-didReceiveNotificationResponse:(UNNotificationResponse *)response
-         withCompletionHandler:(void (^)(void))completionHandler
-{
-  [RNCPushNotificationIOS didReceiveNotificationResponse:response];
-}
-```
-
-For Android, no additional setup is needed.
+4. Run the app:
+   ```
+   npm start
+   ```
 
 ## Usage
 
-The `SettingsScreen` component provides the following options:
+- The task data is loaded from Redux state, which is populated by the backend API.
+- Clicking "Complete" will call the `completeTask` API endpoint and show a loading state.
+- Clicking "Skip" will prompt a confirmation dialog, then call `skipTask` on confirm.
+- Clicking "Swap Task" will call `getAlternativeTask` and update the current step.
+- On completion, a success animation is played, and the user is navigated to the home screen.
 
-- Toggle notifications on/off
-- Select daily reminder time 
-- Test notification
+## Code Structure
 
-Notification settings are persisted to Redux store.
-
-Local notifications are scheduled/cancelled using `react-native-push-notification`.
+- `TaskScreen.js`: The main component for the Task Completion Interface.
+- `TipAccordion.js`: An expandable accordion component for displaying task tips.  
+- `SuccessAnimation.js`: A component that plays a Lottie success animation.
+- `goalSlice.js`: The Redux slice that manages goal state and API actions.
+- `Api.js`: A service module for making API requests related to tasks and goals.
