@@ -1,0 +1,13 @@
+{
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.8.0",
+    "date-fns": "^2.28.0",
+    "react": "17.0.1",
+    "react-native": "0.64.3",
+    "react-native-calendar-heatmap": "^1.0.5",
+    "react-native-view-shot": "^3.1.2",
+    "react-redux": "^7.2.6",
+    "redux": "^4.1.2",
+    "victory-native": "^35.3.1"
+  }
+}
