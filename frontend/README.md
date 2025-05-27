@@ -1,30 +1,66 @@
-# MicroWins Frontend
+# Notification Settings
+
+This feature allows users to customize their daily goal reminder notifications.
 
 ## Setup
 
-1. Install dependencies:
-   ```
-   npm install
-   ```
+Install required dependencies:
 
-2. Link native modules:
-   ```
-   npx react-native link
-   ```
+```bash
+npm install @react-native-community/datetimepicker react-native-push-notification
+```
 
-3. Run the app:
-   ```
-   npx react-native run-ios
-   # or
-   npx react-native run-android
-   ```
+For iOS, add the following to your `AppDelegate.m`:
 
-## In-App Purchases
+```objc
+#import <RNCPushNotificationIOS.h>
 
-The premium upgrade flow uses React Native IAP for in-app purchases.
+// ...
 
-Before releasing to production:
+- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions
+{
+  // ...
+  
+  [RNCPushNotificationIOS didReceiveRemoteNotification:notification];
+  
+  return YES;
+}
 
-1. Set up in-app products in App Store Connect and Google Play Console.
-2. Replace `your_premium_product_id` with the actual product ID.
-3. Implement server-side receipt validation to prevent unauthorized access to premium features.
+// Required for the register event.
+- (void)application:(UIApplication *)application didRegisterForRemoteNotificationsWithDeviceToken:(NSData *)deviceToken
+{
+ [RNCPushNotificationIOS didRegisterForRemoteNotificationsWithDeviceToken:deviceToken];
+}
+// Required for the notification event. You must call the completion handler after handling the remote notification.
+- (void)application:(UIApplication *)application didReceiveRemoteNotification:(NSDictionary *)userInfo
+fetchCompletionHandler:(void (^)(UIBackgroundFetchResult))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveRemoteNotification:userInfo fetchCompletionHandler:completionHandler];
+}
+// Required for the registrationError event.
+- (void)application:(UIApplication *)application didFailToRegisterForRemoteNotificationsWithError:(NSError *)error
+{
+ [RNCPushNotificationIOS didFailToRegisterForRemoteNotificationsWithError:error];
+}
+// Required for localNotification event
+- (void)userNotificationCenter:(UNUserNotificationCenter *)center
+didReceiveNotificationResponse:(UNNotificationResponse *)response
+         withCompletionHandler:(void (^)(void))completionHandler
+{
+  [RNCPushNotificationIOS didReceiveNotificationResponse:response];
+}
+```
+
+For Android, no additional setup is needed.
+
+## Usage
+
+The `SettingsScreen` component provides the following options:
+
+- Toggle notifications on/off
+- Select daily reminder time 
+- Test notification
+
+Notification settings are persisted to Redux store.
+
+Local notifications are scheduled/cancelled using `react-native-push-notification`.
