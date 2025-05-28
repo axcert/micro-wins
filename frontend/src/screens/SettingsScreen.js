@@ -1,66 +1,63 @@
-import React, { useState } from 'react';
-import { View, Text, TouchableOpacity, Switch } from 'react-native';
-import DateTimePicker from '@react-native-community/datetimepicker';
-import { useDispatch, useSelector } from 'react-redux';
-import { updateNotificationSettings } from '../store/userSlice';
-import { scheduleNotification, cancelNotifications } from '../utils/notifications';
+import React, { useEffect, useState } from 'react';
+import { View, Text, TouchableOpacity, ActivityIndicator } from 'react-native';
+import { useSelector, useDispatch } from 'react-redux';
+import { fetchSubscriptionStatus, purchaseSubscription, restoreSubscription } from '../store/subscriptionSlice';
 
 const SettingsScreen = () => {
   const dispatch = useDispatch();
-  const { notificationTime, notificationsEnabled } = useSelector(state => state.user);
-  const [showPicker, setShowPicker] = useState(false);
+  const { subscriptionStatus, loading, error } = useSelector(state => state.subscription);
+  const [purchasing, setPurchasing] = useState(false);
+  const [restoring, setRestoring] = useState(false);
 
-  const toggleNotifications = () => {
-    dispatch(updateNotificationSettings({ 
-      notificationsEnabled: !notificationsEnabled
-    }));
-    if (!notificationsEnabled) {
-      scheduleNotification(notificationTime);
-    } else {
-      cancelNotifications();
+  useEffect(() => {
+    dispatch(fetchSubscriptionStatus());
+  }, [dispatch]);
+
+  const handlePurchase = async () => {
+    setPurchasing(true);
+    try {
+      await dispatch(purchaseSubscription());
+    } catch (err) {
+      console.error('Subscription purchase failed', err);
+      // TODO: display user-friendly error
     }
+    setPurchasing(false);
   };
 
-  const handleTimePicked = (event, selectedTime) => {
-    const currentTime = selectedTime || notificationTime;
-    setShowPicker(false);
-    dispatch(updateNotificationSettings({ notificationTime: currentTime }));
-    if (notificationsEnabled) {
-      scheduleNotification(currentTime);
+  const handleRestore = async () => {
+    setRestoring(true);
+    try { 
+      await dispatch(restoreSubscription());
+    } catch (err) {
+      console.error('Subscription restore failed', err);
+      // TODO: display user-friendly error
     }
+    setRestoring(false);
   };
+
+  if (loading) {
+    return (
+      <View>
+        <ActivityIndicator size="large" />
+      </View>
+    );
+  }
 
   return (
     <View>
-      <Text>Notification Settings</Text>
+      <Text>Subscription Status: {subscriptionStatus}</Text>
       
-      <View>
-        <Text>Enable Notifications</Text>
-        <Switch 
-          value={notificationsEnabled}
-          onValueChange={toggleNotifications}
-        />
-      </View>
-
-      <TouchableOpacity onPress={() => setShowPicker(true)}>
-        <Text>Daily Reminder Time</Text>
-        <Text>{notificationTime.toLocaleTimeString()}</Text>
-      </TouchableOpacity>
-
-      {showPicker && (
-        <DateTimePicker
-          value={notificationTime}
-          mode="time"
-          is24Hour={true}
-          display="default"
-          onChange={handleTimePicked}
-        />
+      {subscriptionStatus !== 'active' && (
+        <TouchableOpacity onPress={handlePurchase} disabled={purchasing}>
+          <Text>{purchasing ? 'Purchasing...' : 'Upgrade to Premium'}</Text>
+        </TouchableOpacity>
       )}
 
-      <TouchableOpacity onPress={() => scheduleNotification(notificationTime)}>
-        <Text>Test Notification</Text>  
+      <TouchableOpacity onPress={handleRestore} disabled={restoring}>
+        <Text>{restoring ? 'Restoring...' : 'Restore Purchase'}</Text>
       </TouchableOpacity>
-      
+
+      {error && <Text>Error: {error}</Text>}
     </View>
   );
 };
