@@ -1,22 +1,35 @@
 const BASE_URL = 'https://api.example.com';
 
 export const Api = {
-  async completeTask(taskId) {
-    const response = await fetch(`${BASE_URL}/tasks/${taskId}/complete`, {
-      method: 'POST',
-    });
+  // ... existing API methods ...
+  
+  async getDashboardSummary() {
+    const response = await fetch(`${BASE_URL}/api/progress/dashboard`);
     return response.json();
   },
   
-  async skipTask(taskId) {
-    const response = await fetch(`${BASE_URL}/tasks/${taskId}/skip`, {
-      method: 'POST', 
-    });
+  async getStreakData() {
+    const response = await fetch(`${BASE_URL}/api/progress/streaks`);
+    return response.json();  
+  },
+  
+  async getProgressTimeline() {
+    const response = await fetch(`${BASE_URL}/api/progress/timeline`);
     return response.json();
   },
-
-  async getAlternativeTask(goalId) {
-    const response = await fetch(`${BASE_URL}/goals/${goalId}/alternative-task`);
+  
+  async getCompletionStats() {
+    const response = await fetch(`${BASE_URL}/api/progress/stats`);  
     return response.json();
+  },
+  
+  async getAchievements() {
+    const response = await fetch(`${BASE_URL}/api/progress/achievements`);
+    return response.json();
+  },
+  
+  async exportUserData() {
+    const response = await fetch(`${BASE_URL}/api/progress/export`);
+    return response.json();  
   },
 };
