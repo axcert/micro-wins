@@ -1,108 +1,42 @@
 import React from 'react';
-import { View, StyleSheet } from 'react-native';  
-import { Text, Input, Button } from 'react-native-elements';
-import { useForm, Controller } from 'react-hook-form';
-import { useNavigation } from '@react-navigation/native';
-import { COLORS, FONTS, SPACING } from '../constants/design';
+import { View, Text, TextInput, Button } from 'react-native';
+import { useDispatch } from 'react-redux';
+import { register } from '../store/authSlice';
 
-const SignUpScreen = () => {
-  const navigation = useNavigation();
-  const { control, handleSubmit, formState: { errors } } = useForm();
+const SignUpScreen = ({ navigation }) => {
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const dispatch = useDispatch();
 
-  const onSubmit = (data) => {
-    // Handle sign up logic here  
-    console.log(data);
-    navigation.replace('Onboarding');
+  const handleSignUp = async () => {
+    try {
+      await dispatch(register({ email, password })).unwrap();
+      // Navigate to onboarding on successful registration 
+      navigation.navigate('Onboarding');
+    } catch (err) {
+      console.error('Registration failed', err);
+      // Show error message to user  
+    }
   };
 
   return (
-    <View style={styles.container}>
-      <Text h3 style={styles.title}>Create Account</Text>
-      
-      <Controller
-        control={control}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Input
-            placeholder="Email"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            errorMessage={errors.email?.message}
-            autoCapitalize="none"
-            keyboardType="email-address"
-          />
-        )}
-        name="email"
-        rules={{ 
-          required: 'Email is required',
-          pattern: {
-            value: /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i,
-            message: 'Invalid email address',
-          },
-        }}
-        defaultValue=""
+    <View>
+      <Text>Sign Up</Text>
+      <TextInput
+        placeholder="Email" 
+        value={email}
+        onChangeText={setEmail}
+        autoCapitalize="none"
       />
-
-      <Controller
-        control={control}
-        render={({ field: { onChange, onBlur, value } }) => (
-          <Input 
-            placeholder="Password"
-            onBlur={onBlur}
-            onChangeText={onChange}
-            value={value}
-            errorMessage={errors.password?.message}
-            secureTextEntry
-          />
-        )}
-        name="password"
-        rules={{
-          required: 'Password is required', 
-          minLength: {
-            value: 8,
-            message: 'Password must be at least 8 characters',
-          },
-        }}
-        defaultValue=""
+      <TextInput 
+        placeholder="Password"
+        value={password}
+        onChangeText={setPassword}
+        secureTextEntry
       />
-
-      <Button
-        title="Create Account"  
-        containerStyle={styles.button}
-        onPress={handleSubmit(onSubmit)}
-      />
-
-      <Button
-        title="Sign In Instead"
-        type="clear"
-        containerStyle={styles.button}
-        titleStyle={styles.signInButton}
-        onPress={() => navigation.navigate('SignIn')}
-      />
-
+      <Button title="Sign Up" onPress={handleSignUp} />
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,  
-    justifyContent: 'center',
-    padding: SPACING.lg,
-    backgroundColor: COLORS.background,
-  },
-  title: {
-    textAlign: 'center',
-    marginBottom: SPACING.lg,
-    fontFamily: FONTS.bold,  
-  },
-  button: {
-    marginTop: SPACING.lg,
-  },
-  signInButton: {
-    color: COLORS.primary,
-    fontFamily: FONTS.medium,
-  },  
-});
 
 export default SignUpScreen;
