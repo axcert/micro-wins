@@ -1,19 +1,41 @@
-import { createSlice } from '@reduxjs/toolkit';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import axios from 'axios';
 
-const initialState = {
-  notificationsEnabled: true,
-  notificationTime: new Date(Date.now()),
-};
+const API_URL = 'https://your-api-url.com';
+
+export const syncNotificationSettings = createAsyncThunk(
+  'user/syncNotificationSettings',
+  async (_, { getState }) => {
+    const { user } = getState();
+    try {
+      await axios.post(`${API_URL}/users/${user.id}/notification-settings`, { 
+        notificationToken: user.notificationToken
+      });
+    } catch (err) {
+      console.error('Error syncing notification settings:', err);
+      throw err;
+    }
+  }
+);
 
 const userSlice = createSlice({
   name: 'user',
-  initialState,
+  initialState: {
+    id: null,
+    email: '',
+    name: '',
+    notificationToken: null,
+  },
   reducers: {
-    updateNotificationSettings(state, action) {
-      return { ...state, ...action.payload };  
+    setUser: (state, action) => {
+      return { ...state, ...action.payload };
+    },
+    saveNotificationToken: (state, action) => {
+      state.notificationToken = action.payload;
     },
   },
 });
 
-export const { updateNotificationSettings } = userSlice.actions;
+export const { setUser, saveNotificationToken } = userSlice.actions;
+
 export default userSlice.reducer;
