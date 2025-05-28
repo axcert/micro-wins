@@ -3,13 +3,14 @@ import { View, Text, StyleSheet, TouchableOpacity, RefreshControl } from 'react-
 import { useSelector, useDispatch } from 'react-redux';
 import { ProgressBar } from 'react-native-paper';
 import Animated, { useAnimatedStyle, useSharedValue, withTiming } from 'react-native-reanimated';
-
+import type {AppDispatch} from '../store/store';
 import { fetchGoalProgress, selectActiveGoal, selectTodaysTask } from '../store/goalSlice';
 import { RootState } from '../store/store';
 import EmptyState from '../components/EmptyState';
 
 const Home = () => {
-  const dispatch = useDispatch();
+  
+  const dispatch = useDispatch<AppDispatch>();
   const activeGoal = useSelector((state: RootState) => selectActiveGoal(state));
   const todaysTask = useSelector((state: RootState) => selectTodaysTask(state));
   const progressPercent = useSharedValue(0);

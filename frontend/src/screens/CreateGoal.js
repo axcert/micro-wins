@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { View, TextInput, ActivityIndicator } from 'react-native';
 import { Button, Text } from 'react-native-elements';
-import { useNavigation } from 'react-navigation-hooks';
+import { useNavigation } from '@react-navigation/native';
 import axios from 'axios';
 
 const difficultyOptions = ['Easy', 'Medium', 'Hard'];
@@ -13,7 +13,7 @@ export default function CreateGoal() {
   const [category, setCategory] = useState('Social');
   const [loading, setLoading] = useState(false);
   
-  const { navigate } = useNavigation();
+  const navigation = useNavigation(); // Changed from const { navigate } = useNavigation();
 
   const generateSteps = async () => {
     setLoading(true);
@@ -21,7 +21,7 @@ export default function CreateGoal() {
       const response = await axios.post('/api/generate-steps', {goal, difficulty, category});
       const steps = response.data;
       setLoading(false);
-      navigate('PreviewSteps', {goal, steps});
+      navigation.navigate('PreviewSteps', {goal, steps}); // Changed from navigate to navigation.navigate
     } catch (err) {
       console.error(err);
       setLoading(false);
@@ -30,7 +30,7 @@ export default function CreateGoal() {
   }
 
   return (
-    <View>
+    <View style={{ padding: 20, flex: 1 , justifyContent: 'center' }}>
       <Text h4>What is your goal?</Text>
       <TextInput
         multiline
