@@ -3,6 +3,8 @@ import { View, Text, StyleSheet } from 'react-native';
 import { Button } from 'react-native-elements';
 import { useNavigation } from '@react-navigation/native'; 
 import { COLORS, FONTS, SPACING } from '../constants/design';
+import CreateGoal from '../screens/CreateGoal';
+
 
 const slides = [
   {
@@ -29,6 +31,11 @@ const OnboardingScreen = () => {
     navigation.replace('App');
   };
 
+  const handleStart = () => {
+    navigation.replace('CreateGoal');
+    // Optionally, you can also navigate to the CreateGoal screen directly
+  };
+
   const renderSlides = () => {
     return slides.map((slide) => (
       <View key={slide.key} style={styles.slide}>
@@ -45,7 +52,7 @@ const OnboardingScreen = () => {
       <Button
         title="Get Started"
         containerStyle={styles.button}
-        onPress={handleSkip}
+        onPress={handleStart}
       />
 
       <Button 

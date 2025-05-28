@@ -1,7 +1,7 @@
 import React, { useRef, useEffect } from 'react';
 import { View, StyleSheet } from 'react-native';
 import LottieView from 'lottie-react-native';
-import successAnimation from './success.json';
+
 
 const SuccessAnimation = ({ visible }) => {
   const animationRef = useRef(null);
