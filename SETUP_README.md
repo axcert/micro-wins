@@ -6,9 +6,9 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:09:36  
-**Total Files Analyzed:** 1  
-**Technology Stack:** General
+**Generated on:** 2025-05-29 15:11:30  
+**Total Files Analyzed:** 3  
+**Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
 
@@ -51,7 +51,10 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── microwinds-mobile/
+  ├── src/
+    ├── components/
+      ├── common/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -66,7 +69,30 @@ Testing commands will depend on your specific testing framework.
 
 Based on the codebase analysis, follow these patterns:
 
-Coding guidelines are being analyzed from the codebase.
+
+### Import Patterns
+Follow these import styles found in the codebase:
+```
+import AsyncStorage from '@react-native-async-stor
+import { Button } from 'react-native-elements';
+const netState = await NetInfo.fetch();
+```
+
+### Function Patterns
+Follow these function definition styles:
+```
+onPress: () => {
+private handleRetry = async () => {
+private unsubscribeNetInfo: (() => void) | null = 
+```
+
+### Error Handling
+Follow these error handling patterns:
+```
+<Text style={styles.retryCount}>
+{retryCount > 0 && (
+retryCount: {
+```
 
 ## 🔧 Common Issues & Solutions
 
