@@ -15,7 +15,9 @@
 - **Navigation**: React Navigation
 - **Animations**: Lottie for celebration animations
 - **Storage**: AsyncStorage for offline capability
-- **Styles**: use Tailwind.css for styling
+
+### Styling 
+- **use css for user interface styling
 
 ### Backend
 - **API**: Node.js + Express or FastAPI (Python)
