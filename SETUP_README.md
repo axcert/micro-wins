@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:09:41  
-**Total Files Analyzed:** 24  
+**Generated on:** 2025-05-29 13:12:30  
+**Total Files Analyzed:** 25  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -80,7 +80,7 @@ Follow these import styles found in the codebase:
 ```
 import { setOfflineMode, setAuthState, logout } fr
 const response = await apiClient.get<DashboardSumm
-import * as Sentry from '@sentry/react-native';
+const API_BASE_URL = {
 ```
 
 ### Function Patterns
