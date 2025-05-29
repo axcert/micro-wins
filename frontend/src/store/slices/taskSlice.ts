@@ -1,46 +1,84 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as taskService from '../../services/api/taskService';
-import { TaskType } from '../../types/TaskTypes';
+import { fetchTask, completeTask, skipTask, swapTask } from '../../services/api/taskService';
+import { Task } from '../../types/TaskTypes';
 
 interface TaskState {
-  todaysTask: TaskType | null;
+  currentTask: Task | null;
   isLoading: boolean;
   error: string | null;
 }
 
 const initialState: TaskState = {
-  todaysTask: null,
+  currentTask: null,
   isLoading: false,
   error: null,
 };
 
-export const fetchTodaysTask = createAsyncThunk(
-  'task/fetchTodaysTask',
-  async () => {
-    const task = await taskService.fetchTodaysTask();
-    return task;
+export const fetchCurrentTask = createAsyncThunk(
+  'task/fetchCurrent',
+  async (_, { rejectWithValue }) => {
+    try {
+      const task = await fetchTask();
+      return task;
+    } catch (err) {
+      console.error('Error fetching current task:', err);
+      return rejectWithValue('Failed to fetch current task');
+    }
   }
 );
 
-export const completeTask = createAsyncThunk(
-  'task/completeTask',
-  async (taskId: string) => {
-    await taskService.completeTask(taskId);
+export const completeCurrentTask = createAsyncThunk(
+  'task/completeCurrent',
+  async (_, { getState, rejectWithValue }) => {
+    const { task } = getState() as { task: TaskState };
+    
+    if (!task.currentTask) {
+      return rejectWithValue('No current task to complete');
+    }
+
+    try {
+      await completeTask(task.currentTask.id);
+    } catch (err) {
+      console.error('Error completing task:', err);
+      return rejectWithValue('Failed to complete task');
+    }
   }
 );
 
-export const skipTask = createAsyncThunk(
-  'task/skipTask',
-  async (taskId: string) => {
-    await taskService.skipTask(taskId);
+export const skipCurrentTask = createAsyncThunk(
+  'task/skipCurrent',
+  async (_, { getState, rejectWithValue }) => {
+    const { task } = getState() as { task: TaskState };
+    
+    if (!task.currentTask) {
+      return rejectWithValue('No current task to skip');
+    }
+
+    try {
+      await skipTask(task.currentTask.id);
+    } catch (err) {
+      console.error('Error skipping task:', err);
+      return rejectWithValue('Failed to skip task');  
+    }
   }
 );
 
-export const swapTask = createAsyncThunk(
-  'task/swapTask',
-  async (taskId: string) => {
-    const newTask = await taskService.swapTask(taskId);
-    return newTask;
+export const swapCurrentTask = createAsyncThunk(
+  'task/swapCurrent',
+  async (_, { getState, rejectWithValue }) => {
+    const { task } = getState() as { task: TaskState };
+    
+    if (!task.currentTask) {
+      return rejectWithValue('No current task to swap');
+    }
+
+    try {
+      const newTask = await swapTask(task.currentTask.id);
+      return newTask;
+    } catch (err) {
+      console.error('Error swapping task:', err);
+      return rejectWithValue('Failed to swap task');
+    }
   }
 );
 
@@ -50,25 +88,26 @@ const taskSlice = createSlice({
   reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(fetchTodaysTask.pending, (state) => {
+      .addCase(fetchCurrentTask.pending, (state) => {
         state.isLoading = true;
         state.error = null;
       })
-      .addCase(fetchTodaysTask.fulfilled, (state, action) => {
+      .addCase(fetchCurrentTask.fulfilled, (state, action) => {
         state.isLoading = false;
-        state.todaysTask = action.payload;
+        state.currentTask = action.payload;
       })
-      .addCase(fetchTodaysTask.rejected, (state, action) => {
+      .addCase(fetchCurrentTask.rejected, (state, action) => {
         state.isLoading = false;
-        state.error = action.error.message ?? 'Failed to fetch task';
+        state.error = action.payload as string;
       })
-      .addCase(completeTask.fulfilled, (state) => {
-        if (state.todaysTask) {
-          state.todaysTask.completed = true;  
-        }
+      .addCase(completeCurrentTask.fulfilled, (state) => {
+        state.currentTask = null;
       })
-      .addCase(swapTask.fulfilled, (state, action) => {
-        state.todaysTask = action.payload;
+      .addCase(skipCurrentTask.fulfilled, (state) => {
+        state.currentTask = null;
+      })
+      .addCase(swapCurrentTask.fulfilled, (state, action) => {
+        state.currentTask = action.payload;
       });
   },
 });
