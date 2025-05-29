@@ -1,5 +1,7 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import messaging from '@react-native-firebase/messaging';
+import apiClient from './apiClient';
+import { handleError } from '../utils/errorUtils';
 
 const API_URL = 'https://api.example.com/notifications';
 
@@ -16,26 +18,7 @@ export const registerForPushNotifications = async () => {
       await sendTokenToServer(token);
     }
   } catch (error) {
-    console.error('Error registering for push notifications:', error);
-  }
-};
-
-const sendTokenToServer = async (token) => {
-  try {
-    const response = await fetch(`${API_URL}/register`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${await AsyncStorage.getItem('accessToken')}`,
-      },
-      body: JSON.stringify({ token }),
-    });
-
-    if (!response.ok) {
-      throw new Error('Failed to send token to server');
-    }
-  } catch (error) {
-    console.error('Error sending token to server:', error);
+    handleError(error, 'Error registering for push notifications');
   }
 };
 
@@ -44,24 +27,70 @@ export const unregisterFromPushNotifications = async () => {
     await messaging().deleteToken();
     await removeTokenFromServer();
   } catch (error) {
-    console.error('Error unregistering from push notifications:', error);
+    handleError(error, 'Error unregistering from push notifications');
   }
 };
 
-const removeTokenFromServer = async () => {
+export const sendTokenToServer = async (token) => {
   try {
-    const response = await fetch(`${API_URL}/unregister`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        Authorization: `Bearer ${await AsyncStorage.getItem('accessToken')}`,
-      },
+    const response = await apiClient.post(`${API_URL}/token`, {
+      token,
     });
 
-    if (!response.ok) {
-      throw new Error('Failed to remove token from server');
+    if (!response.data.success) {
+      throw new Error('Failed to send token to server');
     }
   } catch (error) {
-    console.error('Error removing token from server:', error);
+    handleError(error, 'Error sending token to server');
+  }
+};
+
+export const removeTokenFromServer = async () => {
+  try {
+    const token = await AsyncStorage.getItem('fcmToken');
+
+    if (token) {
+      const response = await apiClient.delete(`${API_URL}/token`, {
+        data: {
+          token,
+        },
+      });
+
+      if (!response.data.success) {
+        throw new Error('Failed to remove token from server');
+      }
+    }
+  } catch (error) {
+    handleError(error, 'Error removing token from server');
+  }
+};
+
+export const updateNotificationPreferences = async (preferences) => {
+  try {
+    const response = await apiClient.put(`${API_URL}/preferences`, preferences);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Error updating notification preferences');
+    return null;
+  }
+};
+
+export const sendTestNotification = async () => {
+  try {
+    const response = await apiClient.post(`${API_URL}/test`);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Error sending test notification');
+    return null;
+  }
+};
+
+export const fetchNotificationHistory = async (userId) => {
+  try {
+    const response = await apiClient.get(`${API_URL}/history/${userId}`);
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Error fetching notification history');
+    return null;
   }
 };
