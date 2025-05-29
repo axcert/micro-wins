@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 09:10:15  
-**Total Files Analyzed:** 28  
+**Generated on:** 2025-05-29 09:12:11  
+**Total Files Analyzed:** 31  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -59,6 +59,7 @@ nano .env
   ├── api/
   ├── components/
   ├── redux/
+  ├── screens/
   ├── utils/
 ```
 
