@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:07:52  
-**Total Files Analyzed:** 19  
+**Generated on:** 2025-05-29 13:09:41  
+**Total Files Analyzed:** 24  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -78,7 +78,7 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-import AppNavigator from './navigation/AppNavigato
+import { setOfflineMode, setAuthState, logout } fr
 const response = await apiClient.get<DashboardSumm
 import * as Sentry from '@sentry/react-native';
 ```
@@ -86,9 +86,9 @@ import * as Sentry from '@sentry/react-native';
 ### Function Patterns
 Follow these function definition styles:
 ```
+export const register = async (dispatch: AppDispat
 async (error: AxiosError) => {
 useEffect(() => {
-): Promise<ProgressChart[]> => {
 ```
 
 ### Error Handling
