@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:34:16  
-**Total Files Analyzed:** 16  
+**Generated on:** 2025-05-29 15:36:08  
+**Total Files Analyzed:** 18  
 **Technology Stack:** PHP, TypeScript
 
 ## 🛠️ Prerequisites
@@ -57,6 +57,7 @@ nano .env
   ├── app/
     ├── Http/
       ├── Controllers/
+      ├── Requests/
 ├── microwinds-mobile/
   ├── src/
     ├── components/
