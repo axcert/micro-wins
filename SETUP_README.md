@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:11:30  
-**Total Files Analyzed:** 3  
+**Generated on:** 2025-05-29 15:13:27  
+**Total Files Analyzed:** 5  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -55,6 +55,9 @@ nano .env
   ├── src/
     ├── components/
       ├── common/
+    ├── services/
+      ├── subscription/
+    ├── types/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -73,9 +76,9 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
+const response = await apiClient.get('/api/subscri
 import AsyncStorage from '@react-native-async-stor
 import { Button } from 'react-native-elements';
-const netState = await NetInfo.fetch();
 ```
 
 ### Function Patterns
@@ -90,8 +93,8 @@ private unsubscribeNetInfo: (() => void) | null =
 Follow these error handling patterns:
 ```
 <Text style={styles.retryCount}>
-{retryCount > 0 && (
-retryCount: {
+} catch (error: any) {
+} catch (error) {
 ```
 
 ## 🔧 Common Issues & Solutions
