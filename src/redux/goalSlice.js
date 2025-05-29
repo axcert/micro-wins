@@ -1,148 +1,60 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import * as goalApi from '../api/goalApi';
-import * as aiApi from '../api/aiApi';
+import api from '../api';
 
-export const createGoal = createAsyncThunk(
-  'goals/createGoal',
-  async (goal, { rejectWithValue }) => {
-    try {
-      const data = await goalApi.createGoal(goal);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+export const fetchGoalProgress = createAsyncThunk('goal/fetchProgress', async (_, { getState }) => {
+  const { auth: { token } } = getState();
+  const response = await api.get('/goal/progress', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+});
 
-export const fetchGoalStatus = createAsyncThunk(
-  'goals/fetchGoalStatus',
-  async (goalId, { rejectWithValue }) => {
-    try {
-      const data = await goalApi.fetchGoalStatus(goalId);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchGoalSteps = createAsyncThunk(
-  'goals/fetchGoalSteps',
-  async (goalId, { rejectWithValue }) => {
-    try {
-      const data = await goalApi.fetchGoalSteps(goalId);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const requestGoalDecomposition = createAsyncThunk(
-  'goals/requestGoalDecomposition',
-  async (goalId, { rejectWithValue }) => {
-    try {
-      const data = await goalApi.requestGoalDecomposition(goalId);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const overrideGoalSteps = createAsyncThunk(
-  'goals/overrideGoalSteps',
-  async ({ goalId, steps }, { rejectWithValue }) => {
-    try {
-      const data = await goalApi.overrideGoalSteps(goalId, steps);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }  
-);
-
-export const fetchAIProviders = createAsyncThunk(
-  'goals/fetchAIProviders',
-  async (_, { rejectWithValue }) => {
-    try {
-      const data = await aiApi.fetchAIProviders();
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
-
-export const fetchAIUsageCosts = createAsyncThunk(
-  'goals/fetchAIUsageCosts',
-  async (providerId, { rejectWithValue }) => {
-    try {
-      const data = await aiApi.fetchAIUsageCosts(providerId);
-      return data; 
-    } catch (error) {
-      return rejectWithValue(error.message);  
-    }
-  }
-);
-
-export const cacheGoalDecomposition = createAsyncThunk(
-  'goals/cacheGoalDecomposition',
-  async ({ goal, steps }, { rejectWithValue }) => {
-    try {
-      const data = await aiApi.cacheGoalDecomposition(goal, steps);
-      return data;
-    } catch (error) {
-      return rejectWithValue(error.message);
-    }
-  }
-);
+export const fetchTodaysTask = createAsyncThunk('goal/fetchTodaysTask', async (_, { getState }) => {
+  const { auth: { token } } = getState();
+  const response = await api.get('/goal/today', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  return response.data;
+});
 
 const goalSlice = createSlice({
-  name: 'goals',
+  name: 'goal',
   initialState: {
-    activeGoals: [],
-    goalStatus: {},
-    goalSteps: {},
-    aiProviders: [],
-    aiUsageCosts: {},
-    goalDecompositionCache: {},
+    currentGoal: null,
+    goalProgress: 0,
+    todaysTask: null,
     isLoading: false,
     error: null,
   },
-  reducers: {
-    // ...
-  },
+  reducers: {},
   extraReducers: (builder) => {
     builder
-      .addCase(createGoal.pending, (state) => {
+      .addCase(fetchGoalProgress.pending, (state) => {
         state.isLoading = true;
+      })
+      .addCase(fetchGoalProgress.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.currentGoal = action.payload.goal;
+        state.goalProgress = action.payload.progress;
         state.error = null;
       })
-      .addCase(createGoal.fulfilled, (state, action) => {
+      .addCase(fetchGoalProgress.rejected, (state, action) => {
         state.isLoading = false;
-        state.activeGoals.push(action.payload);
-      })  
-      .addCase(createGoal.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
+        state.error = action.error.message;
       })
-      // ... other cases
-      .addCase(requestGoalDecomposition.pending, (state) => {
+      .addCase(fetchTodaysTask.pending, (state) => {
         state.isLoading = true;
+      })
+      .addCase(fetchTodaysTask.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.todaysTask = action.payload;
         state.error = null;
       })
-      .addCase(requestGoalDecomposition.fulfilled, (state) => {
+      .addCase(fetchTodaysTask.rejected, (state, action) => {
         state.isLoading = false;
-      })
-      .addCase(requestGoalDecomposition.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.payload;
-      })
-      // ... other cases
+        state.error = action.error.message;
+      });
   },
 });
-
-export const { /* ... */ } = goalSlice.actions;
 
 export default goalSlice.reducer;
