@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 08:56:48  
-**Total Files Analyzed:** 9  
+**Generated on:** 2025-05-29 08:58:17  
+**Total Files Analyzed:** 12  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -89,8 +89,8 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const response = await fetch(`${SUBSCRIPTION_API_U
 import ErrorBoundary from './components/ErrorBound
+const response = await fetch(`${ANALYTICS_API_URL}
 import * as Sentry from '@sentry/react-native';
 ```
 
