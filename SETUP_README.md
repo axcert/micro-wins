@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:18:40  
-**Total Files Analyzed:** 28  
+**Generated on:** 2025-05-29 13:20:12  
+**Total Files Analyzed:** 31  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -55,6 +55,7 @@ nano .env
   ├── src/
     ├── controllers/
     ├── routes/
+    ├── services/
 ├── frontend/
   ├── src/
     ├── components/
@@ -83,16 +84,16 @@ Based on the codebase analysis, follow these patterns:
 Follow these import styles found in the codebase:
 ```
 const user = await prisma.user.findFirst({ where: 
+const step = await stepService.skipStep(id, reason
 import * as Sentry from '@sentry/react-native';
-const subscription = await stripe.subscriptions.re
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-// Helper function to get raw request body for web
-export const createSubscription = async (req: Requ
-export const listInvoices = async (req: Request, r
+req.on('data', (chunk) => {
+export const updateStep = async (req: Request, res
+<Button title="Retry" onPress={() => this.setState
 ```
 
 ### Error Handling
