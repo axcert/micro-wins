@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:24:56  
-**Total Files Analyzed:** 36  
+**Generated on:** 2025-05-29 13:26:52  
+**Total Files Analyzed:** 41  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -54,8 +54,10 @@ nano .env
 ├── backend/
   ├── src/
     ├── controllers/
+    ├── middleware/
     ├── routes/
     ├── services/
+    ├── utils/
 ├── frontend/
   ├── src/
     ├── components/
@@ -64,7 +66,6 @@ nano .env
     ├── services/
       ├── api/
     ├── store/
-      ├── slices/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -83,16 +84,16 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const user = await prisma.user.findFirst({ where: 
 const step = await stepService.skipStep(id, reason
 const goals = await goalService.listGoals(userId, 
+import * as Sentry from '@sentry/react-native';
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
+export const forgotPassword = async (req: Request,
 export const listTemplates = async (req: Request, 
-req.on('data', (chunk) => {
 export const updateStep = async (req: Request, res
 ```
 
