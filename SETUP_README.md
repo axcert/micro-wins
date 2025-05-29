@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 10:40:30  
-**Total Files Analyzed:** 6  
+**Generated on:** 2025-05-29 10:41:52  
+**Total Files Analyzed:** 11  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -81,15 +81,15 @@ Follow these import styles found in the codebase:
 ```
 const subscriptionFeatures = [
 import { View, Text } from 'react-native';
-const purchaseToken = await purchaseSubscription()
+const initialState: AnalyticsState = {
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 export const purchaseSubscription = async () => {
+async (_, { rejectWithValue }) => {
 return new Promise((resolve) => {
-useEffect(() => {
 ```
 
 ### Error Handling
