@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 09:05:04  
-**Total Files Analyzed:** 26  
+**Generated on:** 2025-05-29 09:06:27  
+**Total Files Analyzed:** 27  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -89,25 +89,25 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const response = await fetch(`${ANALYTICS_API_URL}
-import { registerForPushNotifications, unregisterF
-const token = getAuthToken();
+const state = await NetInfo.fetch();
+const processOfflineQueue = async () => {
+const detectNetworkStatus = async () => {
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-setTimeout(() => resolve(api(config)), 1000);
 messaging().setBackgroundMessageHandler(async (rem
 .then((remoteMessage) => {
+}, (error) => {
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
-if (config.__retryCount < 3) {
-config.__retryCount += 1;
-// Retry logic for idempotent requests
+try {
+originalRequest._retry = true;
+if (error.response.status === 401 && !originalRequ
 ```
 
 ## 🔧 Common Issues & Solutions
