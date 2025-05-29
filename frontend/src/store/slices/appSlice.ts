@@ -1,23 +1,30 @@
 import { createSlice, PayloadAction } from '@reduxjs/toolkit';
 
 interface AppState {
-  isOffline: boolean;
+  offlineMode: boolean;
+  error: string | null;
 }
 
 const initialState: AppState = {
-  isOffline: false,
+  offlineMode: false,
+  error: null,  
 };
 
-export const appSlice = createSlice({
+const appSlice = createSlice({
   name: 'app',
   initialState,
   reducers: {
-    setOfflineMode: (state, action: PayloadAction<boolean>) => {
-      state.isOffline = action.payload;
+    setOfflineMode(state, action: PayloadAction<boolean>) {
+      state.offlineMode = action.payload;
+    },
+    setError(state, action: PayloadAction<string | null>) {
+      state.error = action.payload;
     },
   },
 });
 
-export const { setOfflineMode } = appSlice.actions;
-
+export const { setOfflineMode, setError } = appSlice.actions;
 export default appSlice.reducer;
+
+export const selectOfflineMode = (state: RootState) => state.app.offlineMode;
+export const selectError = (state: RootState) => state.app.error;
