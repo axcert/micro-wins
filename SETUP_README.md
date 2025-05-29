@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 09:14:51  
-**Total Files Analyzed:** 33  
+**Generated on:** 2025-05-29 09:16:09  
+**Total Files Analyzed:** 36  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -90,25 +90,24 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const state = await NetInfo.fetch();
-const processOfflineQueue = async () => {
-const detectNetworkStatus = async () => {
+const response = await api.post(`${AI_API_URL}/cac
+const response = await fetch(`${ANALYTICS_API_URL}
+import { registerForPushNotifications, unregisterF
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
+export const fetchAIProviders = async () => {
+export const cacheGoalDecomposition = async (goal,
 messaging().setBackgroundMessageHandler(async (rem
-.then((remoteMessage) => {
-}, (error) => {
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
 try {
-originalRequest._retry = true;
-if (error.response.status === 401 && !originalRequ
+} catch (error) {
 ```
 
 ## 🔧 Common Issues & Solutions
