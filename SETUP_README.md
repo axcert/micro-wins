@@ -6,9 +6,9 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 12:55:13  
-**Total Files Analyzed:** 1  
-**Technology Stack:** General
+**Generated on:** 2025-05-29 12:57:06  
+**Total Files Analyzed:** 6  
+**Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
 
@@ -51,7 +51,14 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── frontend/
+  ├── src/
+    ├── components/
+      ├── common/
+    ├── services/
+      ├── api/
+    ├── store/
+      ├── slices/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -66,7 +73,30 @@ Testing commands will depend on your specific testing framework.
 
 Based on the codebase analysis, follow these patterns:
 
-Coding guidelines are being analyzed from the codebase.
+
+### Import Patterns
+Follow these import styles found in the codebase:
+```
+import AppNavigator from './navigation/AppNavigato
+import ErrorBoundary from './components/common/Err
+const state = store.getState();
+```
+
+### Function Patterns
+Follow these function definition styles:
+```
+async (error: AxiosError) => {
+setOfflineMode: (state, action: PayloadAction<bool
+<Button title="Retry" onPress={() => this.setState
+```
+
+### Error Handling
+Follow these error handling patterns:
+```
+Sentry.captureException(error);
+// Log API errors to Sentry
+Sentry.setContext('api', {
+```
 
 ## 🔧 Common Issues & Solutions
 
