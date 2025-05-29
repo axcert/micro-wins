@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:22:12  
-**Total Files Analyzed:** 34  
+**Generated on:** 2025-05-29 13:24:56  
+**Total Files Analyzed:** 36  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -85,15 +85,15 @@ Follow these import styles found in the codebase:
 ```
 const user = await prisma.user.findFirst({ where: 
 const step = await stepService.skipStep(id, reason
-import * as Sentry from '@sentry/react-native';
+const goals = await goalService.listGoals(userId, 
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
+export const listTemplates = async (req: Request, 
 req.on('data', (chunk) => {
 export const updateStep = async (req: Request, res
-<Button title="Retry" onPress={() => this.setState
 ```
 
 ### Error Handling
