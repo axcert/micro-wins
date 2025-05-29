@@ -5,6 +5,8 @@ interface UserState {
   email: string | null;
   name: string | null;
   isPremium: boolean;
+  notificationTime: string | null;
+  notificationsEnabled: boolean;
 }
 
 const initialState: UserState = {
@@ -12,6 +14,8 @@ const initialState: UserState = {
   email: null, 
   name: null,
   isPremium: false,
+  notificationTime: '09:00',
+  notificationsEnabled: true,
 };
 
 const userSlice = createSlice({
@@ -26,14 +30,20 @@ const userSlice = createSlice({
     updateUserPremiumStatus(state, action: PayloadAction<boolean>) {
       state.isPremium = action.payload;
     },
+    updateNotificationSettings(state, action: PayloadAction<{ time: string; enabled: boolean }>) {
+      state.notificationTime = action.payload.time;
+      state.notificationsEnabled = action.payload.enabled;
+    },
     clearUser(state) {
       state.userId = null;
       state.email = null;
       state.name = null;
       state.isPremium = false;
+      state.notificationTime = '09:00';
+      state.notificationsEnabled = true;
     },
   },
 });
 
-export const { setUser, updateUserPremiumStatus, clearUser } = userSlice.actions;
+export const { setUser, updateUserPremiumStatus, updateNotificationSettings, clearUser } = userSlice.actions;
 export default userSlice.reducer;
