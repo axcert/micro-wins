@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:23:22  
-**Total Files Analyzed:** 12  
+**Generated on:** 2025-05-29 15:25:09  
+**Total Files Analyzed:** 13  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -79,25 +79,25 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const response = await apiClient.get('/api/subscri
 const { data, timestamp, expiresAt }: CachedAnalyt
 const cached = await AsyncStorage.getItem(key);
+import AsyncStorage from '@react-native-async-stor
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 private handleRetry = async () => {
+async (config) => {
 this.pollingIntervals.forEach((interval) => clearI
-datasets: data.datasets.map(dataset => ({
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
 <Text style={styles.retryCount}>
-} catch (error: any) {
-} catch (error) {
+private retryTimeouts: Map<string, NodeJS.Timeout>
+// Clear any existing retry timeout
 ```
 
 ## 🔧 Common Issues & Solutions
