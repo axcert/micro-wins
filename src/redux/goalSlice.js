@@ -1,60 +1,44 @@
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
-import api from '../api';
+// ...existing imports
+import { AI_API_URL } from '../config';
 
-export const fetchGoalProgress = createAsyncThunk('goal/fetchProgress', async (_, { getState }) => {
-  const { auth: { token } } = getState();
-  const response = await api.get('/goal/progress', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-});
-
-export const fetchTodaysTask = createAsyncThunk('goal/fetchTodaysTask', async (_, { getState }) => {
-  const { auth: { token } } = getState();
-  const response = await api.get('/goal/today', {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-  return response.data;
-});
-
-const goalSlice = createSlice({
+export const goalSlice = createSlice({
   name: 'goal',
   initialState: {
     currentGoal: null,
-    goalProgress: 0,
-    todaysTask: null,
-    isLoading: false,
-    error: null,
+    steps: [],
+    // ...
   },
-  reducers: {},
-  extraReducers: (builder) => {
-    builder
-      .addCase(fetchGoalProgress.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchGoalProgress.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.currentGoal = action.payload.goal;
-        state.goalProgress = action.payload.progress;
-        state.error = null;
-      })
-      .addCase(fetchGoalProgress.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message;
-      })
-      .addCase(fetchTodaysTask.pending, (state) => {
-        state.isLoading = true;
-      })
-      .addCase(fetchTodaysTask.fulfilled, (state, action) => {
-        state.isLoading = false;
-        state.todaysTask = action.payload;
-        state.error = null;
-      })
-      .addCase(fetchTodaysTask.rejected, (state, action) => {
-        state.isLoading = false;
-        state.error = action.error.message;
-      });
+  reducers: {
+    // ...
+    setCurrentGoal: (state, action) => {
+      state.currentGoal = action.payload;
+    },
+    setSteps: (state, action) => {
+      state.steps = action.payload;
+    },
   },
 });
+
+export const { setCurrentGoal, setSteps } = goalSlice.actions;
+
+export const createGoal = (goal) => async (dispatch) => {
+  try {
+    const response = await fetch(`${AI_API_URL}/goals`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(goal),
+    });
+    const data = await response.json();
+    dispatch(setCurrentGoal(data.goal));
+    dispatch(setSteps(data.steps));
+  } catch (error) {
+    console.log('Error creating goal:', error);
+    throw error;
+  }
+};
+
+// ...existing code
 
 export default goalSlice.reducer;
