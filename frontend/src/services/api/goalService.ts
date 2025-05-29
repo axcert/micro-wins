@@ -31,3 +31,12 @@ export const fetchGoalMicroSteps = async (goalId: string): Promise<MicroStep[]> 
     throw err;
   }
 };
+
+export const overrideGoalMicroSteps = async (goalId: string, updatedSteps: MicroStep[]): Promise<void> => {
+  try {
+    await axios.put(`${API_URL}/goals/${goalId}/microsteps`, { steps: updatedSteps });
+  } catch (err) {
+    console.error(`Error overriding micro-steps for goal ${goalId}:`, err);
+    throw err;  
+  }
+};
