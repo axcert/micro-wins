@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 10:47:09  
-**Total Files Analyzed:** 22  
+**Generated on:** 2025-05-29 10:48:52  
+**Total Files Analyzed:** 25  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -81,17 +81,17 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const response = await axios.get(`${API_URL}/analy
 const App = () => {
-const response = await axios.post(`${API_URL}/goal
+import { requestNotificationPermission } from './s
+const AUTH_TOKENS_KEY = 'authTokens';
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-export const purchaseSubscription = async () => {
-return new Promise((resolve) => {
-export const fetchGoalStatus = async (goalId: stri
+export const refreshTokens = async (refreshToken: 
+export const fetchAnalyticsSummary = async () => {
+useEffect(() => {
 ```
 
 ### Error Handling
