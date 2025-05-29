@@ -13,10 +13,11 @@
 ### Project Type
 - **Application Type**: Mobile App (React Native) with Backend API
 - **Architecture Pattern**: Client-Server with Microservices Backend
-- **Primary Languages**: JavaScript/TypeScript (Frontend), Node.js/Python (Backend)
+- **Primary Languages**: JavaScript/TypeScript (Frontend), Node.js (Backend)
 - **Frontend Framework**: React Native with Expo
 - **Backend Framework**: Node.js + Express.js (Primary) / FastAPI (Alternative)
 - **Database**: PostgreSQL (Primary), Redis (Caching)
+- **generate package.jason file with necessary imports
 
 ### Core Mission
 Transform overwhelming goals into 100 micro-actions, each representing 1% progress toward the ultimate objective. Help users achieve their dreams through manageable daily steps.
