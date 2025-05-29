@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 10:45:36  
-**Total Files Analyzed:** 17  
+**Generated on:** 2025-05-29 10:47:09  
+**Total Files Analyzed:** 22  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -62,6 +62,7 @@ nano .env
       ├── notifications/
     ├── store/
       ├── slices/
+    ├── types/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -82,15 +83,15 @@ Follow these import styles found in the codebase:
 ```
 const response = await axios.get(`${API_URL}/analy
 const App = () => {
-const response = await axios.post(`${API_URL}/task
+const response = await axios.post(`${API_URL}/goal
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 export const purchaseSubscription = async () => {
-export const fetchTodaysTask = async (): Promise<T
 return new Promise((resolve) => {
+export const fetchGoalStatus = async (goalId: stri
 ```
 
 ### Error Handling
