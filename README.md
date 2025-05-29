@@ -50,7 +50,7 @@ mkdir -p microwinds-mobile/src/{components/{common,forms,animations},screens/{au
 mkdir -p microwinds-mobile/{__tests__,docs,android,ios}
 
 # Backend (Laravel) structure
-mkdir -p microwinds-api/{app/{Http/{Controllers,Middleware,Requests,Resources},Models,Services,Jobs,Events,Listeners,Mail,Notifications},database/{migrations,seeders,factories},routes,config,storage/{app,framework,logs},resources/{views},tests/{Feature,Unit}}
+mkdir -p microwinds-api/{app/{Http/{Controllers,Middleware,Requests,Resources},Models,Services,Jobs,Events,Listeners,Mail,Notifications,Repositories/{Contracts,Eloquent},Singletons},database/{migrations,seeders,factories},routes,config,storage/{app,framework,logs},resources/{views},tests/{Feature,Unit}}
 
 # Shared documentation
 mkdir -p docs/{api,deployment,architecture}
@@ -147,6 +147,19 @@ microwinds-api/
 │   │   ├── AIService.php
 │   │   ├── NotificationService.php
 │   │   └── AnalyticsService.php
+│   ├── Repositories/          # Repository pattern implementation
+│   │   ├── Contracts/         # Repository interfaces
+│   │   │   ├── GoalRepositoryInterface.php
+│   │   │   ├── UserRepositoryInterface.php
+│   │   │   └── ProgressRepositoryInterface.php
+│   │   └── Eloquent/         # Eloquent implementations
+│   │       ├── GoalRepository.php
+│   │       ├── UserRepository.php
+│   │       └── ProgressRepository.php
+│   ├── Singletons/           # Singleton pattern implementations
+│   │   ├── CacheManager.php
+│   │   ├── ConfigurationManager.php
+│   │   └── LogManager.php
 │   ├── Jobs/                  # Queue jobs
 │   ├── Events/                # Event classes
 │   ├── Listeners/             # Event listeners
@@ -175,6 +188,9 @@ microwinds-api/
 - **Controllers**: `PascalCase + Controller.php` (e.g., `GoalController.php`)
 - **Models**: `PascalCase.php` (e.g., `Goal.php`)
 - **Services**: `PascalCase + Service.php` (e.g., `GoalService.php`)
+- **Repositories**: `PascalCase + Repository.php` (e.g., `GoalRepository.php`)
+- **Repository Interfaces**: `PascalCase + RepositoryInterface.php` (e.g., `GoalRepositoryInterface.php`)
+- **Singletons**: `PascalCase.php` (e.g., `CacheManager.php`)
 - **Migrations**: `timestamp_snake_case.php`
 - **Requests**: `PascalCase + Request.php` (e.g., `CreateGoalRequest.php`)
 - **Resources**: `PascalCase + Resource.php` (e.g., `GoalResource.php`)
@@ -852,7 +868,536 @@ class GoalController extends Controller
 }
 ```
 
-### Service Layer Pattern
+---
+
+## 🏛️ Repository Architecture Pattern
+
+### Repository Interface Contract
+```php
+<?php
+
+namespace App\Repositories\Contracts;
+
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+interface BaseRepositoryInterface
+{
+    /**
+     * Get all records
+     */
+    public function all(array $columns = ['*']): Collection;
+
+    /**
+     * Get paginated records
+     */
+    public function paginate(int $perPage = 15, array $columns = ['*']): LengthAwarePaginator;
+
+    /**
+     * Find record by ID
+     */
+    public function find(int $id, array $columns = ['*']): ?Model;
+
+    /**
+     * Find record by ID or fail
+     */
+    public function findOrFail(int $id, array $columns = ['*']): Model;
+
+    /**
+     * Find record by field
+     */
+    public function findBy(string $field, $value, array $columns = ['*']): ?Model;
+
+    /**
+     * Find multiple records by field
+     */
+    public function findWhere(string $field, $value, array $columns = ['*']): Collection;
+
+    /**
+     * Create new record
+     */
+    public function create(array $data): Model;
+
+    /**
+     * Update record
+     */
+    public function update(Model $model, array $data): Model;
+
+    /**
+     * Delete record
+     */
+    public function delete(Model $model): bool;
+
+    /**
+     * Get records with relationships
+     */
+    public function with(array $relationships): self;
+
+    /**
+     * Apply where conditions
+     */
+    public function where(string $field, $operator = null, $value = null): self;
+
+    /**
+     * Order results
+     */
+    public function orderBy(string $field, string $direction = 'asc'): self;
+
+    /**
+     * Limit results
+     */
+    public function limit(int $limit): self;
+}
+```
+
+### Goal Repository Interface
+```php
+<?php
+
+namespace App\Repositories\Contracts;
+
+use App\Models\Goal;
+use App\Models\User;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+interface GoalRepositoryInterface extends BaseRepositoryInterface
+{
+    /**
+     * Get user's goals with optional filtering
+     */
+    public function getUserGoals(int $userId, array $filters = []): LengthAwarePaginator;
+
+    /**
+     * Get active goals for user
+     */
+    public function getActiveGoals(int $userId): Collection;
+
+    /**
+     * Get goal with micro-steps
+     */
+    public function getGoalWithSteps(int $goalId): Goal;
+
+    /**
+     * Get goals by category
+     */
+    public function getGoalsByCategory(string $category, int $userId = null): Collection;
+
+    /**
+     * Get goals by status
+     */
+    public function getGoalsByStatus(string $status, int $userId = null): Collection;
+
+    /**
+     * Count user's active goals
+     */
+    public function countActiveGoals(int $userId): int;
+
+    /**
+     * Get goals that need AI processing
+     */
+    public function getGoalsNeedingProcessing(): Collection;
+
+    /**
+     * Get user's completed goals
+     */
+    public function getCompletedGoals(int $userId): Collection;
+
+    /**
+     * Search goals by title
+     */
+    public function searchGoals(string $query, int $userId = null): Collection;
+
+    /**
+     * Get goals with progress statistics
+     */
+    public function getGoalsWithProgress(int $userId): Collection;
+
+    /**
+     * Archive completed goals
+     */
+    public function archiveCompletedGoals(int $userId): int;
+}
+```
+
+### Goal Repository Implementation
+```php
+<?php
+
+namespace App\Repositories\Eloquent;
+
+use App\Models\Goal;
+use App\Models\User;
+use App\Repositories\Contracts\GoalRepositoryInterface;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
+use Illuminate\Support\Facades\DB;
+
+class GoalRepository extends BaseRepository implements GoalRepositoryInterface
+{
+    /**
+     * GoalRepository constructor
+     */
+    public function __construct(Goal $model)
+    {
+        parent::__construct($model);
+    }
+
+    /**
+     * Get user's goals with optional filtering
+     */
+    public function getUserGoals(int $userId, array $filters = []): LengthAwarePaginator
+    {
+        $query = $this->model->where('user_id', $userId);
+
+        // Apply status filter
+        if (isset($filters['status'])) {
+            $query->where('status', $filters['status']);
+        }
+
+        // Apply category filter
+        if (isset($filters['category'])) {
+            $query->where('category', $filters['category']);
+        }
+
+        // Apply date range filter
+        if (isset($filters['created_from'])) {
+            $query->where('created_at', '>=', $filters['created_from']);
+        }
+
+        if (isset($filters['created_to'])) {
+            $query->where('created_at', '<=', $filters['created_to']);
+        }
+
+        // Load relationships
+        $query->with(['microSteps' => function ($q) {
+            $q->where('completed_at', null)->orderBy('order')->limit(1);
+        }]);
+
+        // Order by creation date
+        $query->orderBy('created_at', 'desc');
+
+        return $query->paginate($filters['per_page'] ?? 10);
+    }
+
+    /**
+     * Get active goals for user
+     */
+    public function getActiveGoals(int $userId): Collection
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->with(['microSteps' => function ($query) {
+                $query->where('completed_at', null)->orderBy('order');
+            }])
+            ->orderBy('created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Get goal with micro-steps
+     */
+    public function getGoalWithSteps(int $goalId): Goal
+    {
+        return $this->model
+            ->with(['microSteps' => function ($query) {
+                $query->orderBy('order');
+            }])
+            ->findOrFail($goalId);
+    }
+
+    /**
+     * Get goals by category
+     */
+    public function getGoalsByCategory(string $category, int $userId = null): Collection
+    {
+        $query = $this->model->where('category', $category);
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->orderBy('created_at', 'desc')->get();
+    }
+
+    /**
+     * Get goals by status
+     */
+    public function getGoalsByStatus(string $status, int $userId = null): Collection
+    {
+        $query = $this->model->where('status', $status);
+
+        if ($userId) {
+            $query->where('user_id', $userId);
+        }
+
+        return $query->orderBy('updated_at', 'desc')->get();
+    }
+
+    /**
+     * Count user's active goals
+     */
+    public function countActiveGoals(int $userId): int
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('status', 'active')
+            ->count();
+    }
+
+    /**
+     * Get goals that need AI processing
+     */
+    public function getGoalsNeedingProcessing(): Collection
+    {
+        return $this->model
+            ->where('status', 'processing')
+            ->whereNull('processed_at')
+            ->orderBy('created_at', 'asc')
+            ->limit(10)
+            ->get();
+    }
+
+    /**
+     * Get user's completed goals
+     */
+    public function getCompletedGoals(int $userId): Collection
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->with(['microSteps'])
+            ->orderBy('completed_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Search goals by title
+     */
+    public function searchGoals(string $query, int $userId = null): Collection
+    {
+        $builder = $this->model
+            ->where('title', 'ILIKE', "%{$query}%");
+
+        if ($userId) {
+            $builder->where('user_id', $userId);
+        }
+
+        return $builder->orderBy('created_at', 'desc')->get();
+    }
+
+    /**
+     * Get goals with progress statistics
+     */
+    public function getGoalsWithProgress(int $userId): Collection
+    {
+        return $this->model
+            ->select('goals.*')
+            ->selectRaw('
+                COALESCE(
+                    ROUND(
+                        (COUNT(CASE WHEN micro_steps.completed_at IS NOT NULL THEN 1 END) * 100.0) / 
+                        NULLIF(COUNT(micro_steps.id), 0)
+                    ), 0
+                ) as progress_percentage
+            ')
+            ->selectRaw('
+                COUNT(CASE WHEN micro_steps.completed_at IS NOT NULL THEN 1 END) as completed_steps
+            ')
+            ->selectRaw('COUNT(micro_steps.id) as total_steps')
+            ->leftJoin('micro_steps', 'goals.id', '=', 'micro_steps.goal_id')
+            ->where('goals.user_id', $userId)
+            ->groupBy('goals.id')
+            ->orderBy('goals.created_at', 'desc')
+            ->get();
+    }
+
+    /**
+     * Archive completed goals
+     */
+    public function archiveCompletedGoals(int $userId): int
+    {
+        return $this->model
+            ->where('user_id', $userId)
+            ->where('status', 'completed')
+            ->where('completed_at', '<', now()->subDays(30))
+            ->update(['status' => 'archived']);
+    }
+}
+```
+
+### Base Repository Implementation
+```php
+<?php
+
+namespace App\Repositories\Eloquent;
+
+use App\Repositories\Contracts\BaseRepositoryInterface;
+use Illuminate\Database\Eloquent\Builder;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Pagination\LengthAwarePaginator;
+
+abstract class BaseRepository implements BaseRepositoryInterface
+{
+    protected Model $model;
+    protected Builder $query;
+
+    /**
+     * BaseRepository constructor
+     */
+    public function __construct(Model $model)
+    {
+        $this->model = $model;
+        $this->resetQuery();
+    }
+
+    /**
+     * Get all records
+     */
+    public function all(array $columns = ['*']): Collection
+    {
+        return $this->query->get($columns);
+    }
+
+    /**
+     * Get paginated records
+     */
+    public function paginate(int $perPage = 15, array $columns = ['*']): LengthAwarePaginator
+    {
+        return $this->query->paginate($perPage, $columns);
+    }
+
+    /**
+     * Find record by ID
+     */
+    public function find(int $id, array $columns = ['*']): ?Model
+    {
+        return $this->query->find($id, $columns);
+    }
+
+    /**
+     * Find record by ID or fail
+     */
+    public function findOrFail(int $id, array $columns = ['*']): Model
+    {
+        return $this->query->findOrFail($id, $columns);
+    }
+
+    /**
+     * Find record by field
+     */
+    public function findBy(string $field, $value, array $columns = ['*']): ?Model
+    {
+        return $this->query->where($field, $value)->first($columns);
+    }
+
+    /**
+     * Find multiple records by field
+     */
+    public function findWhere(string $field, $value, array $columns = ['*']): Collection
+    {
+        return $this->query->where($field, $value)->get($columns);
+    }
+
+    /**
+     * Create new record
+     */
+    public function create(array $data): Model
+    {
+        return $this->model->create($data);
+    }
+
+    /**
+     * Update record
+     */
+    public function update(Model $model, array $data): Model
+    {
+        $model->update($data);
+        return $model->fresh();
+    }
+
+    /**
+     * Delete record
+     */
+    public function delete(Model $model): bool
+    {
+        return $model->delete();
+    }
+
+    /**
+     * Get records with relationships
+     */
+    public function with(array $relationships): self
+    {
+        $this->query = $this->query->with($relationships);
+        return $this;
+    }
+
+    /**
+     * Apply where conditions
+     */
+    public function where(string $field, $operator = null, $value = null): self
+    {
+        if ($value === null) {
+            $value = $operator;
+            $operator = '=';
+        }
+
+        $this->query = $this->query->where($field, $operator, $value);
+        return $this;
+    }
+
+    /**
+     * Order results
+     */
+    public function orderBy(string $field, string $direction = 'asc'): self
+    {
+        $this->query = $this->query->orderBy($field, $direction);
+        return $this;
+    }
+
+    /**
+     * Limit results
+     */
+    public function limit(int $limit): self
+    {
+        $this->query = $this->query->limit($limit);
+        return $this;
+    }
+
+    /**
+     * Reset the query builder
+     */
+    protected function resetQuery(): void
+    {
+        $this->query = $this->model->newQuery();
+    }
+
+    /**
+     * Get the model instance
+     */
+    public function getModel(): Model
+    {
+        return $this->model;
+    }
+
+    /**
+     * Set a new model instance
+     */
+    public function setModel(Model $model): self
+    {
+        $this->model = $model;
+        $this->resetQuery();
+        return $this;
+    }
+}
+```
+
+### Service Layer with Repository Pattern
 ```php
 <?php
 
@@ -862,6 +1407,8 @@ use App\Models\Goal;
 use App\Models\MicroStep;
 use App\Models\User;
 use App\Jobs\ProcessGoalWithAI;
+use App\Repositories\Contracts\GoalRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
@@ -870,11 +1417,19 @@ use Carbon\Carbon;
 
 class GoalService
 {
+    protected GoalRepositoryInterface $goalRepository;
+    protected UserRepositoryInterface $userRepository;
     protected AIService $aiService;
     protected NotificationService $notificationService;
 
-    public function __construct(AIService $aiService, NotificationService $notificationService)
-    {
+    public function __construct(
+        GoalRepositoryInterface $goalRepository,
+        UserRepositoryInterface $userRepository,
+        AIService $aiService,
+        NotificationService $notificationService
+    ) {
+        $this->goalRepository = $goalRepository;
+        $this->userRepository = $userRepository;
         $this->aiService = $aiService;
         $this->notificationService = $notificationService;
     }
@@ -884,22 +1439,7 @@ class GoalService
      */
     public function getUserGoals(int $userId, array $options = []): LengthAwarePaginator
     {
-        $query = Goal::where('user_id', $userId)
-            ->with(['microSteps' => function ($query) {
-                $query->where('completed_at', null)
-                    ->orderBy('order')
-                    ->limit(1);
-            }]);
-
-        // Apply status filter
-        if (isset($options['status'])) {
-            $query->where('status', $options['status']);
-        }
-
-        // Order by creation date
-        $query->orderBy('created_at', 'desc');
-
-        return $query->paginate($options['per_page'] ?? 10);
+        return $this->goalRepository->getUserGoals($userId, $options);
     }
 
     /**
@@ -909,7 +1449,7 @@ class GoalService
     {
         return DB::transaction(function () use ($goalData) {
             // Create the goal
-            $goal = Goal::create([
+            $goal = $this->goalRepository->create([
                 'user_id' => $goalData['user_id'],
                 'title' => $goalData['title'],
                 'category' => $goalData['category'],
@@ -931,79 +1471,19 @@ class GoalService
     }
 
     /**
-     * Process goal with AI and create micro-steps
-     */
-    public function processGoalWithAI(Goal $goal): void
-    {
-        try {
-            $goal->update(['status' => 'processing']);
-
-            // Generate micro-steps using AI
-            $microSteps = $this->aiService->generateMicroSteps([
-                'title' => $goal->title,
-                'category' => $goal->category,
-                'target_days' => $goal->target_days,
-                'difficulty' => $goal->difficulty_preference,
-            ]);
-
-            // Create micro-steps in database
-            $stepsData = collect($microSteps)->map(function ($step, $index) use ($goal) {
-                return [
-                    'goal_id' => $goal->id,
-                    'order' => $index + 1,
-                    'title' => $step['title'],
-                    'description' => $step['description'],
-                    'tips' => json_encode($step['tips'] ?? []),
-                    'created_at' => now(),
-                    'updated_at' => now(),
-                ];
-            })->toArray();
-
-            MicroStep::insert($stepsData);
-
-            // Update goal status
-            $goal->update([
-                'status' => 'active',
-                'processed_at' => now(),
-            ]);
-
-            // Send notification to user
-            $this->notificationService->sendGoalReadyNotification($goal);
-
-            Log::info('Goal processed successfully', [
-                'goal_id' => $goal->id,
-                'steps_created' => count($stepsData)
-            ]);
-
-        } catch (\Exception $e) {
-            $goal->update(['status' => 'failed']);
-            
-            Log::error('Goal processing failed', [
-                'goal_id' => $goal->id,
-                'error' => $e->getMessage()
-            ]);
-
-            throw $e;
-        }
-    }
-
-    /**
-     * Get goal with micro-steps
+     * Get goal with micro-steps using repository
      */
     public function getGoalWithSteps(int $goalId): Goal
     {
-        return Goal::with(['microSteps' => function ($query) {
-            $query->orderBy('order');
-        }])->findOrFail($goalId);
+        return $this->goalRepository->getGoalWithSteps($goalId);
     }
 
     /**
-     * Update goal
+     * Update goal using repository
      */
     public function updateGoal(Goal $goal, array $data): Goal
     {
-        $goal->update($data);
-        return $goal->fresh();
+        return $this->goalRepository->update($goal, $data);
     }
 
     /**
@@ -1011,8 +1491,7 @@ class GoalService
      */
     public function activateGoal(Goal $goal): Goal
     {
-        $goal->update(['status' => 'active']);
-        return $goal;
+        return $this->goalRepository->update($goal, ['status' => 'active']);
     }
 
     /**
@@ -1020,8 +1499,7 @@ class GoalService
      */
     public function pauseGoal(Goal $goal): Goal
     {
-        $goal->update(['status' => 'paused']);
-        return $goal;
+        return $this->goalRepository->update($goal, ['status' => 'paused']);
     }
 
     /**
@@ -1029,303 +1507,935 @@ class GoalService
      */
     public function canCreateGoal(User $user): bool
     {
-        $activeGoalsCount = $user->goals()->where('status', 'active')->count();
+        $activeGoalsCount = $this->goalRepository->countActiveGoals($user->id);
         
         // Free users: 1 goal, Premium users: unlimited
         return $user->isPremium() || $activeGoalsCount < 1;
     }
 
     /**
-     * Get today's step for user
+     * Get user's progress statistics
      */
-    public function getTodaysStep(int $userId): ?MicroStep
+    public function getUserProgressStats(int $userId): array
     {
-        return MicroStep::whereHas('goal', function ($query) use ($userId) {
-            $query->where('user_id', $userId)
-                  ->where('status', 'active');
-        })
-        ->where('completed_at', null)
-        ->orderBy('order')
-        ->first();
-    }
-
-    /**
-     * Complete a micro-step
-     */
-    public function completeStep(int $stepId, int $userId): array
-    {
-        return DB::transaction(function () use ($stepId, $userId) {
-            $step = MicroStep::whereHas('goal', function ($query) use ($userId) {
-                $query->where('user_id', $userId);
-            })->findOrFail($stepId);
-
-            if ($step->completed_at) {
-                throw new \Exception('Step already completed');
-            }
-
-            // Mark step as completed
-            $step->update(['completed_at' => now()]);
-
-            // Calculate progress
-            $progress = $this->calculateProgress($step->goal_id);
-
-            // Get next step
-            $nextStep = MicroStep::where('goal_id', $step->goal_id)
-                ->where('completed_at', null)
-                ->orderBy('order')
-                ->first();
-
-            // Update user progress
-            $step->goal->user->increment('total_steps_completed');
-
-            // Check for milestones
-            if ($progress % 10 === 0) {
-                $this->createMilestone($step->goal_id, $progress);
-            }
-
-            return [
-                'step' => $step,
-                'progress' => $progress,
-                'next_step' => $nextStep,
-                'goal_id' => $step->goal_id,
-            ];
-        });
-    }
-
-    /**
-     * Calculate goal progress percentage
-     */
-    public function calculateProgress(int $goalId): int
-    {
-        $totalSteps = MicroStep::where('goal_id', $goalId)->count();
-        $completedSteps = MicroStep::where('goal_id', $goalId)
-            ->whereNotNull('completed_at')
-            ->count();
-
-        return $totalSteps > 0 ? round(($completedSteps / $totalSteps) * 100) : 0;
-    }
-
-    /**
-     * Create milestone achievement
-     */
-    protected function createMilestone(int $goalId, int $progress): void
-    {
-        // Implementation for milestone creation
-        Log::info('Milestone reached', [
-            'goal_id' => $goalId,
-            'progress' => $progress
-        ]);
-    }
-
-    /**
-     * Get goal templates
-     */
-    public function getGoalTemplates(): array
-    {
+        $goalsWithProgress = $this->goalRepository->getGoalsWithProgress($userId);
+        $completedGoals = $this->goalRepository->getCompletedGoals($userId);
+        
         return [
-            [
-                'id' => 'learn_language',
-                'title' => 'Learn a New Language',
-                'category' => 'learning',
-                'description' => 'Master a new language through daily practice',
-                'difficulty' => 'medium',
-                'estimated_days' => 90,
-            ],
-            [
-                'id' => 'get_fit',
-                'title' => 'Get in Shape',
-                'category' => 'health',
-                'description' => 'Build fitness through consistent exercise',
-                'difficulty' => 'medium',
-                'estimated_days' => 60,
-            ],
-            // Add more templates
+            'total_goals' => $goalsWithProgress->count(),
+            'completed_goals' => $completedGoals->count(),
+            'active_goals' => $goalsWithProgress->where('status', 'active')->count(),
+            'average_progress' => $goalsWithProgress->avg('progress_percentage'),
+            'total_steps_completed' => $goalsWithProgress->sum('completed_steps'),
         ];
+    }
+
+    /**
+     * Search user's goals
+     */
+    public function searchUserGoals(string $query, int $userId): Collection
+    {
+        return $this->goalRepository->searchGoals($query, $userId);
+    }
+
+    /**
+     * Archive old completed goals
+     */
+    public function archiveOldGoals(int $userId): int
+    {
+        return $this->goalRepository->archiveCompletedGoals($userId);
     }
 }
 ```
 
-### AI Service Pattern
+---
+
+## 🔄 Singleton Pattern Implementation
+
+### Cache Manager Singleton
+```php
+<?php
+
+namespace App\Singletons;
+
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\Log;
+
+class CacheManager
+{
+    private static ?CacheManager $instance = null;
+    private array $tags = [];
+    private int $defaultTtl = 3600; // 1 hour
+
+    /**
+     * Private constructor to prevent direct instantiation
+     */
+    private function __construct()
+    {
+        // Initialize cache settings
+        $this->defaultTtl = config('cache.default_ttl', 3600);
+    }
+
+    /**
+     * Prevent cloning of the instance
+     */
+    private function __clone() {}
+
+    /**
+     * Prevent unserialization of the instance
+     */
+    public function __wakeup()
+    {
+        throw new \Exception("Cannot unserialize singleton");
+    }
+
+    /**
+     * Get the singleton instance
+     */
+    public static function getInstance(): CacheManager
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Set cache tags for the next operation
+     */
+    public function tags(array $tags): self
+    {
+        $this->tags = $tags;
+        return $this;
+    }
+
+    /**
+     * Store data in cache
+     */
+    public function put(string $key, $value, ?int $ttl = null): bool
+    {
+        try {
+            $ttl = $ttl ?? $this->defaultTtl;
+            
+            if (!empty($this->tags)) {
+                $result = Cache::tags($this->tags)->put($key, $value, $ttl);
+                $this->tags = []; // Reset tags after use
+                return $result;
+            }
+
+            return Cache::put($key, $value, $ttl);
+
+        } catch (\Exception $e) {
+            Log::error('Cache put operation failed', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Get data from cache
+     */
+    public function get(string $key, $default = null)
+    {
+        try {
+            if (!empty($this->tags)) {
+                $result = Cache::tags($this->tags)->get($key, $default);
+                $this->tags = []; // Reset tags after use
+                return $result;
+            }
+
+            return Cache::get($key, $default);
+
+        } catch (\Exception $e) {
+            Log::error('Cache get operation failed', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+            return $default;
+        }
+    }
+
+    /**
+     * Remember data in cache
+     */
+    public function remember(string $key, callable $callback, ?int $ttl = null)
+    {
+        try {
+            $ttl = $ttl ?? $this->defaultTtl;
+
+            if (!empty($this->tags)) {
+                $result = Cache::tags($this->tags)->remember($key, $ttl, $callback);
+                $this->tags = []; // Reset tags after use
+                return $result;
+            }
+
+            return Cache::remember($key, $ttl, $callback);
+
+        } catch (\Exception $e) {
+            Log::error('Cache remember operation failed', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+            return $callback();
+        }
+    }
+
+    /**
+     * Check if key exists in cache
+     */
+    public function has(string $key): bool
+    {
+        try {
+            if (!empty($this->tags)) {
+                $result = Cache::tags($this->tags)->has($key);
+                $this->tags = []; // Reset tags after use
+                return $result;
+            }
+
+            return Cache::has($key);
+
+        } catch (\Exception $e) {
+            Log::error('Cache has operation failed', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Forget cache key
+     */
+    public function forget(string $key): bool
+    {
+        try {
+            if (!empty($this->tags)) {
+                $result = Cache::tags($this->tags)->forget($key);
+                $this->tags = []; // Reset tags after use
+                return $result;
+            }
+
+            return Cache::forget($key);
+
+        } catch (\Exception $e) {
+            Log::error('Cache forget operation failed', [
+                'key' => $key,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Flush cache by tags
+     */
+    public function flushTags(array $tags): bool
+    {
+        try {
+            Cache::tags($tags)->flush();
+            return true;
+
+        } catch (\Exception $e) {
+            Log::error('Cache flush tags operation failed', [
+                'tags' => $tags,
+                'error' => $e->getMessage()
+            ]);
+            return false;
+        }
+    }
+
+    /**
+     * Generate cache key for user data
+     */
+    public function userKey(int $userId, string $suffix = ''): string
+    {
+        return "user:{$userId}" . ($suffix ? ":{$suffix}" : '');
+    }
+
+    /**
+     * Generate cache key for goal data
+     */
+    public function goalKey(int $goalId, string $suffix = ''): string
+    {
+        return "goal:{$goalId}" . ($suffix ? ":{$suffix}" : '');
+    }
+
+    /**
+     * Generate cache key for progress data
+     */
+    public function progressKey(int $userId, string $suffix = ''): string
+    {
+        return "progress:{$userId}" . ($suffix ? ":{$suffix}" : '');
+    }
+
+    /**
+     * Cache user goals
+     */
+    public function cacheUserGoals(int $userId, $goals, int $ttl = 1800): bool
+    {
+        return $this->tags(['user_goals', "user_{$userId}"])
+                   ->put($this->userKey($userId, 'goals'), $goals, $ttl);
+    }
+
+    /**
+     * Get cached user goals
+     */
+    public function getCachedUserGoals(int $userId, $default = null)
+    {
+        return $this->tags(['user_goals', "user_{$userId}"])
+                   ->get($this->userKey($userId, 'goals'), $default);
+    }
+
+    /**
+     * Cache goal with steps
+     */
+    public function cacheGoalWithSteps(int $goalId, $goal, int $ttl = 3600): bool
+    {
+        return $this->tags(['goals', "goal_{$goalId}"])
+                   ->put($this->goalKey($goalId, 'with_steps'), $goal, $ttl);
+    }
+
+    /**
+     * Get cached goal with steps
+     */
+    public function getCachedGoalWithSteps(int $goalId, $default = null)
+    {
+        return $this->tags(['goals', "goal_{$goalId}"])
+                   ->get($this->goalKey($goalId, 'with_steps'), $default);
+    }
+
+    /**
+     * Invalidate user cache
+     */
+    public function invalidateUserCache(int $userId): bool
+    {
+        return $this->flushTags(["user_{$userId}", 'user_goals', 'user_progress']);
+    }
+
+    /**
+     * Invalidate goal cache
+     */
+    public function invalidateGoalCache(int $goalId): bool
+    {
+        return $this->flushTags(["goal_{$goalId}", 'goals']);
+    }
+}
+```
+
+### Configuration Manager Singleton
+```php
+<?php
+
+namespace App\Singletons;
+
+use Illuminate\Support\Facades\Config;
+use Illuminate\Support\Facades\Log;
+
+class ConfigurationManager
+{
+    private static ?ConfigurationManager $instance = null;
+    private array $runtimeConfig = [];
+    private array $featuresFlags = [];
+
+    /**
+     * Private constructor to prevent direct instantiation
+     */
+    private function __construct()
+    {
+        $this->loadFeatureFlags();
+    }
+
+    /**
+     * Prevent cloning of the instance
+     */
+    private function __clone() {}
+
+    /**
+     * Prevent unserialization of the instance
+     */
+    public function __wakeup()
+    {
+        throw new \Exception("Cannot unserialize singleton");
+    }
+
+    /**
+     * Get the singleton instance
+     */
+    public static function getInstance(): ConfigurationManager
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Load feature flags from configuration
+     */
+    private function loadFeatureFlags(): void
+    {
+        $this->featuresFlags = [
+            'ai_processing' => Config::get('features.ai_processing', true),
+            'premium_features' => Config::get('features.premium_features', true),
+            'social_sharing' => Config::get('features.social_sharing', false),
+            'analytics_tracking' => Config::get('features.analytics_tracking', true),
+            'push_notifications' => Config::get('features.push_notifications', true),
+            'goal_templates' => Config::get('features.goal_templates', true),
+            'collaboration' => Config::get('features.collaboration', false),
+            'gamification' => Config::get('features.gamification', true),
+        ];
+    }
+
+    /**
+     * Check if a feature is enabled
+     */
+    public function isFeatureEnabled(string $feature): bool
+    {
+        return $this->featuresFlags[$feature] ?? false;
+    }
+
+    /**
+     * Enable a feature
+     */
+    public function enableFeature(string $feature): void
+    {
+        $this->featuresFlags[$feature] = true;
+        Log::info("Feature enabled: {$feature}");
+    }
+
+    /**
+     * Disable a feature
+     */
+    public function disableFeature(string $feature): void
+    {
+        $this->featuresFlags[$feature] = false;
+        Log::info("Feature disabled: {$feature}");
+    }
+
+    /**
+     * Get all feature flags
+     */
+    public function getAllFeatures(): array
+    {
+        return $this->featuresFlags;
+    }
+
+    /**
+     * Set runtime configuration
+     */
+    public function setRuntimeConfig(string $key, $value): void
+    {
+        $this->runtimeConfig[$key] = $value;
+    }
+
+    /**
+     * Get runtime configuration
+     */
+    public function getRuntimeConfig(string $key, $default = null)
+    {
+        return $this->runtimeConfig[$key] ?? $default;
+    }
+
+    /**
+     * Get AI service configuration
+     */
+    public function getAIConfig(): array
+    {
+        return [
+            'enabled' => $this->isFeatureEnabled('ai_processing'),
+            'api_key' => Config::get('services.openai.api_key'),
+            'model' => Config::get('services.openai.model', 'gpt-4'),
+            'max_tokens' => Config::get('services.openai.max_tokens', 4000),
+            'temperature' => Config::get('services.openai.temperature', 0.7),
+            'timeout' => Config::get('services.openai.timeout', 120),
+        ];
+    }
+
+    /**
+     * Get cache configuration
+     */
+    public function getCacheConfig(): array
+    {
+        return [
+            'driver' => Config::get('cache.default'),
+            'prefix' => Config::get('cache.prefix'),
+            'default_ttl' => Config::get('cache.default_ttl', 3600),
+            'user_goals_ttl' => Config::get('cache.user_goals_ttl', 1800),
+            'goal_steps_ttl' => Config::get('cache.goal_steps_ttl', 3600),
+            'analytics_ttl' => Config::get('cache.analytics_ttl', 7200),
+        ];
+    }
+
+    /**
+     * Get notification configuration
+     */
+    public function getNotificationConfig(): array
+    {
+        return [
+            'enabled' => $this->isFeatureEnabled('push_notifications'),
+            'daily_reminder' => Config::get('notifications.daily_reminder', true),
+            'milestone_celebration' => Config::get('notifications.milestone_celebration', true),
+            'streak_motivation' => Config::get('notifications.streak_motivation', true),
+            'goal_completion' => Config::get('notifications.goal_completion', true),
+        ];
+    }
+
+    /**
+     * Get rate limiting configuration
+     */
+    public function getRateLimitConfig(): array
+    {
+        return [
+            'api_requests' => Config::get('rate_limit.api_requests', 100),
+            'goal_creation' => Config::get('rate_limit.goal_creation', 5),
+            'ai_processing' => Config::get('rate_limit.ai_processing', 10),
+            'step_completion' => Config::get('rate_limit.step_completion', 50),
+        ];
+    }
+
+    /**
+     * Get subscription limits
+     */
+    public function getSubscriptionLimits(string $plan = 'free'): array
+    {
+        $limits = [
+            'free' => [
+                'max_goals' => 1,
+                'ai_requests_per_day' => 5,
+                'goal_categories' => ['personal', 'health', 'learning'],
+                'features' => ['basic_tracking', 'progress_charts'],
+            ],
+            'premium' => [
+                'max_goals' => -1, // unlimited
+                'ai_requests_per_day' => 100,
+                'goal_categories' => ['personal', 'health', 'learning', 'career', 'finance', 'social', 'creativity'],
+                'features' => ['advanced_analytics', 'collaboration', 'export_data', 'priority_support'],
+            ],
+        ];
+
+        return $limits[$plan] ?? $limits['free'];
+    }
+
+    /**
+     * Update feature flags from database or external source
+     */
+    public function refreshFeatureFlags(): void
+    {
+        // This could load from database, external API, or feature flag service
+        $this->loadFeatureFlags();
+        Log::info('Feature flags refreshed');
+    }
+}
+```
+
+### Log Manager Singleton
+```php
+<?php
+
+namespace App\Singletons;
+
+use Illuminate\Support\Facades\Log;
+use Monolog\Logger;
+use Monolog\Handler\StreamHandler;
+use Monolog\Handler\RotatingFileHandler;
+use Monolog\Formatter\JsonFormatter;
+
+class LogManager
+{
+    private static ?LogManager $instance = null;
+    private array $loggers = [];
+    private array $contexts = [];
+
+    /**
+     * Private constructor to prevent direct instantiation
+     */
+    private function __construct()
+    {
+        $this->initializeLoggers();
+    }
+
+    /**
+     * Prevent cloning of the instance
+     */
+    private function __clone() {}
+
+    /**
+     * Prevent unserialization of the instance
+     */
+    public function __wakeup()
+    {
+        throw new \Exception("Cannot unserialize singleton");
+    }
+
+    /**
+     * Get the singleton instance
+     */
+    public static function getInstance(): LogManager
+    {
+        if (self::$instance === null) {
+            self::$instance = new self();
+        }
+
+        return self::$instance;
+    }
+
+    /**
+     * Initialize custom loggers
+     */
+    private function initializeLoggers(): void
+    {
+        // Goal operations logger
+        $goalLogger = new Logger('goals');
+        $goalLogger->pushHandler(
+            new RotatingFileHandler(
+                storage_path('logs/goals.log'),
+                7,
+                Logger::INFO
+            )
+        );
+        $this->loggers['goals'] = $goalLogger;
+
+        // AI operations logger
+        $aiLogger = new Logger('ai');
+        $aiLogger->pushHandler(
+            new RotatingFileHandler(
+                storage_path('logs/ai.log'),
+                7,
+                Logger::INFO
+            )
+        );
+        $aiLogger->pushProcessor(function ($record) {
+            $record['extra']['service'] = 'ai';
+            return $record;
+        });
+        $this->loggers['ai'] = $aiLogger;
+
+        // Performance logger
+        $performanceLogger = new Logger('performance');
+        $performanceLogger->pushHandler(
+            new StreamHandler(
+                storage_path('logs/performance.log'),
+                Logger::INFO
+            )
+        );
+        $performanceLogger->pushProcessor(function ($record) {
+            $record['extra']['timestamp'] = microtime(true);
+            return $record;
+        });
+        $this->loggers['performance'] = $performanceLogger;
+
+        // User activity logger
+        $activityLogger = new Logger('activity');
+        $activityLogger->pushHandler(
+            new RotatingFileHandler(
+                storage_path('logs/user_activity.log'),
+                30,
+                Logger::INFO
+            )
+        );
+        $activityLogger->pushFormatter(new JsonFormatter());
+        $this->loggers['activity'] = $activityLogger;
+    }
+
+    /**
+     * Set context for subsequent log entries
+     */
+    public function setContext(array $context): self
+    {
+        $this->contexts = array_merge($this->contexts, $context);
+        return $this;
+    }
+
+    /**
+     * Clear context
+     */
+    public function clearContext(): self
+    {
+        $this->contexts = [];
+        return $this;
+    }
+
+    /**
+     * Log goal creation
+     */
+    public function logGoalCreated(int $goalId, int $userId, string $title): void
+    {
+        $this->loggers['goals']->info('Goal created', array_merge($this->contexts, [
+            'action' => 'goal_created',
+            'goal_id' => $goalId,
+            'user_id' => $userId,
+            'title' => $title,
+            'timestamp' => now()->toISOString(),
+        ]));
+    }
+
+    /**
+     * Log goal completion
+     */
+    public function logGoalCompleted(int $goalId, int $userId, int $daysTaken): void
+    {
+        $this->loggers['goals']->info('Goal completed', array_merge($this->contexts, [
+            'action' => 'goal_completed',
+            'goal_id' => $goalId,
+            'user_id' => $userId,
+            'days_taken' => $daysTaken,
+            'timestamp' => now()->toISOString(),
+        ]));
+    }
+
+    /**
+     * Log step completion
+     */
+    public function logStepCompleted(int $stepId, int $goalId, int $userId, int $stepNumber): void
+    {
+        $this->loggers['goals']->info('Step completed', array_merge($this->contexts, [
+            'action' => 'step_completed',
+            'step_id' => $stepId,
+            'goal_id' => $goalId,
+            'user_id' => $userId,
+            'step_number' => $stepNumber,
+            'timestamp' => now()->toISOString(),
+        ]));
+    }
+
+    /**
+     * Log AI processing
+     */
+    public function logAIProcessing(int $goalId, string $operation, float $duration, bool $success = true): void
+    {
+        $level = $success ? 'info' : 'error';
+        
+        $this->loggers['ai']->$level('AI processing', array_merge($this->contexts, [
+            'action' => 'ai_processing',
+            'operation' => $operation,
+            'goal_id' => $goalId,
+            'duration_seconds' => $duration,
+            'success' => $success,
+            'timestamp' => now()->toISOString(),
+        ]));
+    }
+
+    /**
+     * Log performance metrics
+     */
+    public function logPerformance(string $operation, float $duration, array $metrics = []): void
+    {
+        $this->loggers['performance']->info('Performance metric', array_merge($this->contexts, [
+            'operation' => $operation,
+            'duration_ms' => $duration * 1000,
+            'memory_usage' => memory_get_usage(true),
+            'peak_memory' => memory_get_peak_usage(true),
+        ], $metrics));
+    }
+
+    /**
+     * Log user activity
+     */
+    public function logUserActivity(int $userId, string $action, array $data = []): void
+    {
+        $this->loggers['activity']->info('User activity', array_merge($this->contexts, [
+            'user_id' => $userId,
+            'action' => $action,
+            'data' => $data,
+            'ip_address' => request()->ip(),
+            'user_agent' => request()->userAgent(),
+            'timestamp' => now()->toISOString(),
+        ]));
+    }
+
+    /**
+     * Log error with context
+     */
+    public function logError(string $message, \Exception $exception, array $context = []): void
+    {
+        Log::error($message, array_merge($this->contexts, $context, [
+            'exception' => $exception->getMessage(),
+            'file' => $exception->getFile(),
+            'line' => $exception->getLine(),
+            'trace' => $exception->getTraceAsString(),
+        ]));
+    }
+
+    /**
+     * Get daily activity summary
+     */
+    public function getDailyActivitySummary(\DateTime $date): array
+    {
+        // This would typically read from log files or database
+        // Implementation depends on your log storage solution
+        return [
+            'date' => $date->format('Y-m-d'),
+            'goal_creations' => 0,
+            'step_completions' => 0,
+            'goal_completions' => 0,
+            'active_users' => 0,
+            'ai_requests' => 0,
+        ];
+    }
+
+    /**
+     * Archive old logs
+     */
+    public function archiveOldLogs(int $daysToKeep = 30): void
+    {
+        $cutoffDate = now()->subDays($daysToKeep);
+        
+        // Archive logic would go here
+        Log::info('Log archival completed', [
+            'cutoff_date' => $cutoffDate->toISOString(),
+            'days_kept' => $daysToKeep,
+        ]);
+    }
+}
+```
+
+### Using Singletons in Services
 ```php
 <?php
 
 namespace App\Services;
 
-use Illuminate\Support\Facades\Http;
-use Illuminate\Support\Facades\Log;
-use Illuminate\Support\Facades\Cache;
+use App\Models\Goal;
+use App\Repositories\Contracts\GoalRepositoryInterface;
+use App\Singletons\CacheManager;
+use App\Singletons\ConfigurationManager;
+use App\Singletons\LogManager;
 
-class AIService
+class EnhancedGoalService
 {
-    protected string $apiKey;
-    protected string $baseUrl;
+    protected GoalRepositoryInterface $goalRepository;
+    protected CacheManager $cache;
+    protected ConfigurationManager $config;
+    protected LogManager $logger;
 
-    public function __construct()
+    public function __construct(GoalRepositoryInterface $goalRepository)
     {
-        $this->apiKey = config('services.openai.api_key');
-        $this->baseUrl = config('services.openai.base_url', 'https://api.openai.com/v1');
+        $this->goalRepository = $goalRepository;
+        $this->cache = CacheManager::getInstance();
+        $this->config = ConfigurationManager::getInstance();
+        $this->logger = LogManager::getInstance();
     }
 
     /**
-     * Generate 100 micro-steps for a goal using AI
+     * Get user goals with caching
      */
-    public function generateMicroSteps(array $goalData): array
+    public function getUserGoals(int $userId, array $options = [])
     {
-        $cacheKey = 'microsteps_' . md5(json_encode($goalData));
-        
+        $startTime = microtime(true);
+
         // Check cache first
-        if (Cache::has($cacheKey)) {
-            Log::info('Using cached micro-steps', ['goal' => $goalData['title']]);
-            return Cache::get($cacheKey);
+        $cacheKey = $this->cache->userKey($userId, 'goals_' . md5(serialize($options)));
+        $goals = $this->cache->getCachedUserGoals($userId);
+
+        if ($goals === null) {
+            // Load from repository
+            $goals = $this->goalRepository->getUserGoals($userId, $options);
+            
+            // Cache the results
+            $this->cache->cacheUserGoals($userId, $goals, $this->config->getCacheConfig()['user_goals_ttl']);
+            
+            $this->logger->logUserActivity($userId, 'goals_loaded_from_db');
+        } else {
+            $this->logger->logUserActivity($userId, 'goals_loaded_from_cache');
+        }
+
+        // Log performance
+        $this->logger->logPerformance('get_user_goals', microtime(true) - $startTime, [
+            'user_id' => $userId,
+            'goals_count' => $goals->count(),
+            'cache_hit' => $goals !== null,
+        ]);
+
+        return $goals;
+    }
+
+    /**
+     * Create goal with enhanced logging and caching
+     */
+    public function createGoal(array $goalData): Goal
+    {
+        $startTime = microtime(true);
+
+        // Check feature flag
+        if (!$this->config->isFeatureEnabled('goal_creation')) {
+            throw new \Exception('Goal creation is currently disabled');
+        }
+
+        // Check rate limits
+        $limits = $this->config->getSubscriptionLimits();
+        $userGoalsCount = $this->goalRepository->countActiveGoals($goalData['user_id']);
+        
+        if ($limits['max_goals'] > 0 && $userGoalsCount >= $limits['max_goals']) {
+            throw new \Exception('Goal limit exceeded');
         }
 
         try {
-            $prompt = $this->buildMicroStepsPrompt($goalData);
-            
-            $response = Http::withHeaders([
-                'Authorization' => 'Bearer ' . $this->apiKey,
-                'Content-Type' => 'application/json',
-            ])->timeout(120)->post($this->baseUrl . '/chat/completions', [
-                'model' => 'gpt-4',
-                'messages' => [
-                    [
-                        'role' => 'system',
-                        'content' => 'You are an expert life coach who breaks down big goals into exactly 100 manageable micro-steps. Each step should be specific, actionable, and build upon the previous ones.'
-                    ],
-                    [
-                        'role' => 'user',
-                        'content' => $prompt
-                    ]
-                ],
-                'temperature' => 0.7,
-                'max_tokens' => 4000,
+            $goal = $this->goalRepository->create($goalData);
+
+            // Log goal creation
+            $this->logger->logGoalCreated($goal->id, $goal->user_id, $goal->title);
+
+            // Invalidate user cache
+            $this->cache->invalidateUserCache($goal->user_id);
+
+            // Log performance
+            $this->logger->logPerformance('create_goal', microtime(true) - $startTime, [
+                'goal_id' => $goal->id,
+                'user_id' => $goal->user_id,
             ]);
 
-            if (!$response->successful()) {
-                throw new \Exception('AI API request failed: ' . $response->body());
-            }
-
-            $content = $response->json()['choices'][0]['message']['content'];
-            $microSteps = $this->parseMicroStepsResponse($content);
-
-            if (count($microSteps) !== 100) {
-                throw new \Exception('Expected 100 steps, got ' . count($microSteps));
-            }
-
-            // Cache for 24 hours
-            Cache::put($cacheKey, $microSteps, now()->addDay());
-
-            Log::info('Generated micro-steps successfully', [
-                'goal' => $goalData['title'],
-                'steps_count' => count($microSteps)
-            ]);
-
-            return $microSteps;
+            return $goal;
 
         } catch (\Exception $e) {
-            Log::error('AI micro-steps generation failed', [
-                'goal' => $goalData['title'],
-                'error' => $e->getMessage()
+            $this->logger->logError('Goal creation failed', $e, [
+                'user_id' => $goalData['user_id'],
+                'goal_data' => $goalData,
             ]);
-
-            // Return fallback steps if AI fails
-            return $this->getFallbackSteps($goalData);
+            throw $e;
         }
     }
 
     /**
-     * Build the prompt for AI micro-step generation
+     * Complete step with comprehensive logging
      */
-    protected function buildMicroStepsPrompt(array $goalData): string
+    public function completeStep(int $stepId, int $userId): array
     {
-        return sprintf(
-            "Generate exactly 100 micro-steps to achieve this goal: \"%s\"\n\n" .
-            "Goal Details:\n" .
-            "- Category: %s\n" .
-            "- Timeline: %d days\n" .
-            "- Difficulty: %s\n\n" .
-            "Requirements:\n" .
-            "- Each step must be completable in 15-30 minutes\n" .
-            "- Steps should build upon each other logically\n" .
-            "- Include variety to maintain engagement\n" .
-            "- Make steps specific and actionable\n" .
-            "- Progress from basic to advanced concepts\n\n" .
-            "Format each step as JSON:\n" .
-            "{\n" .
-            "  \"title\": \"Brief, actionable title (max 50 chars)\",\n" .
-            "  \"description\": \"Detailed instructions (100-200 words)\",\n" .
-            "  \"tips\": [\"helpful tip 1\", \"helpful tip 2\"]\n" .
-            "}\n\n" .
-            "Return as a JSON array of exactly 100 steps.",
-            $goalData['title'],
-            $goalData['category'],
-            $goalData['target_days'],
-            $goalData['difficulty']
-        );
-    }
+        $startTime = microtime(true);
 
-    /**
-     * Parse AI response into structured micro-steps
-     */
-    protected function parseMicroStepsResponse(string $response): array
-    {
         try {
-            // Clean response
-            $cleaned = preg_replace('/```json\n?|\n?```/', '', $response);
-            $cleaned = trim($cleaned);
-            
-            $steps = json_decode($cleaned, true);
-            
-            if (!is_array($steps)) {
-                throw new \Exception('Response is not an array');
-            }
-
-            return array_map(function ($step, $index) {
-                return [
-                    'title' => $step['title'] ?? "Step " . ($index + 1),
-                    'description' => $step['description'] ?? $step['title'] ?? '',
-                    'tips' => is_array($step['tips'] ?? null) ? $step['tips'] : []
-                ];
-            }, $steps, array_keys($steps));
-
-        } catch (\Exception $e) {
-            Log::error('Failed to parse AI response', [
-                'error' => $e->getMessage(),
-                'response_preview' => substr($response, 0, 500)
-            ]);
-            
-            throw new \Exception('Invalid AI response format');
-        }
-    }
-
-    /**
-     * Get fallback steps when AI fails
-     */
-    protected function getFallbackSteps(array $goalData): array
-    {
-        // Return generic steps based on category
-        $templates = [
-            'learning' => [
-                ['title' => 'Set up learning space', 'description' => 'Create a dedicated space for learning.', 'tips' => []],
-                ['title' => 'Define learning objectives', 'description' => 'Write down what you want to achieve.', 'tips' => []],
-                // ... more generic steps
-            ],
-            // Other categories...
-        ];
-
-        $category = $goalData['category'] ?? 'general';
-        $fallbackSteps = $templates[$category] ?? $templates['learning'];
-
-        // Pad to 100 steps
-        while (count($fallbackSteps) < 100) {
-            $fallbackSteps[] = [
-                'title' => 'Continue practice',
-                'description' => 'Keep working on your goal with consistent effort.',
-                'tips' => ['Stay consistent', 'Track your progress']
+            // Implementation here...
+            $result = [
+                'step_id' => $stepId,
+                'user_id' => $userId,
+                'completed_at' => now(),
             ];
-        }
 
-        return array_slice($fallbackSteps, 0, 100);
+            // Log step completion
+            $this->logger->logStepCompleted($stepId, $result['goal_id'], $userId, $result['step_number']);
+
+            // Invalidate caches
+            $this->cache->invalidateUserCache($userId);
+            $this->cache->invalidateGoalCache($result['goal_id']);
+
+            // Log performance
+            $this->logger->logPerformance('complete_step', microtime(true) - $startTime, [
+                'step_id' => $stepId,
+                'user_id' => $userId,
+            ]);
+
+            return $result;
+
+        } catch (\Exception $e) {
+            $this->logger->logError('Step completion failed', $e, [
+                'step_id' => $stepId,
+                'user_id' => $userId,
+            ]);
+            throw $e;
+        }
     }
 }
 ```
@@ -1685,15 +2795,35 @@ export const shadows = {
 
 ### MUST DO - Backend (Laravel)
 - ✅ **Follow PSR-12 coding standards** for all PHP code
-- ✅ **Use Eloquent ORM** for all database operations
+- ✅ **Use Repository Pattern** for data access layer abstraction
+- ✅ **Implement Singleton Pattern** for shared resources (cache, config, logging)
+- ✅ **Use Eloquent ORM** for all database operations through repositories
 - ✅ **Implement proper request validation** using Form Requests
-- ✅ **Use service layer pattern** for business logic
-- ✅ **Add comprehensive logging** for all operations
+- ✅ **Use service layer pattern** for business logic with dependency injection
+- ✅ **Add comprehensive logging** using LogManager singleton for all operations
 - ✅ **Implement proper error handling** with try-catch blocks
 - ✅ **Use Laravel queues** for long-running operations (AI processing)
 - ✅ **Add API resource transformers** for consistent response format
 - ✅ **Include proper authentication** using Laravel Sanctum
 - ✅ **Write feature and unit tests** for all functionality
+- ✅ **Use CacheManager singleton** for all caching operations
+- ✅ **Implement ConfigurationManager** for feature flags and settings
+
+### Repository Pattern Requirements
+- ✅ **Create repository interfaces** for all major entities (Goal, User, Progress)
+- ✅ **Implement repository classes** that extend BaseRepository
+- ✅ **Use dependency injection** to inject repositories into services
+- ✅ **Include method-specific queries** in repository implementations
+- ✅ **Add caching layer** in repositories using CacheManager singleton
+- ✅ **Implement proper error handling** in repository methods
+
+### Singleton Pattern Requirements
+- ✅ **Use private constructors** to prevent direct instantiation
+- ✅ **Implement __clone() prevention** to avoid cloning
+- ✅ **Add __wakeup() protection** against unserialization
+- ✅ **Use static getInstance() method** for accessing singleton instances
+- ✅ **Thread-safe implementation** for singleton instances
+- ✅ **Proper cleanup and resource management** in singleton classes
 
 ### NEVER DO
 - ❌ **Skip input validation** - Validate on both frontend and backend
@@ -1701,11 +2831,14 @@ export const shadows = {
 - ❌ **Store sensitive data insecurely** - Use proper encryption and secure storage
 - ❌ **Ignore accessibility** - Support screen readers and keyboard navigation
 - ❌ **Skip error handling** - Handle all possible error scenarios
-- ❌ **Use raw SQL queries** - Use Eloquent ORM for database operations
+- ❌ **Use raw SQL queries** - Use Eloquent ORM through repositories
 - ❌ **Expose sensitive information** in API responses or logs
 - ❌ **Skip rate limiting** - Implement proper API rate limiting
 - ❌ **Ignore performance** - Optimize queries and API responses
 - ❌ **Skip database transactions** - Use transactions for multi-step operations
+- ❌ **Create multiple singleton instances** - Ensure proper singleton implementation
+- ❌ **Access database directly from controllers** - Always use repository pattern
+- ❌ **Bypass caching layer** - Use CacheManager for all caching needs
 
 ### CODE QUALITY CHECKLIST
 Before submitting any code, ensure:
@@ -1717,10 +2850,14 @@ Before submitting any code, ensure:
 - [ ] Accessibility attributes are included for all interactive elements
 - [ ] Performance is optimized (lazy loading, memoization)
 - [ ] Security best practices are followed (input validation, authentication)
-- [ ] Database operations use proper Eloquent relationships
+- [ ] Repository pattern is used for all data access
+- [ ] Singleton pattern is properly implemented for shared resources
+- [ ] Database operations use proper Eloquent relationships through repositories
 - [ ] API responses follow consistent format with proper HTTP status codes
 - [ ] Laravel queues are used for long-running operations
-- [ ] Comprehensive logging is included for debugging
+- [ ] Comprehensive logging is included using LogManager singleton
+- [ ] Caching is implemented using CacheManager singleton
+- [ ] Feature flags are managed through ConfigurationManager
 - [ ] Tests are written for both frontend components and backend functionality
 
 ---
@@ -1829,6 +2966,46 @@ GET    /api/progress/export     - Export progress data
 
 ---
 
+## 🛠️ Service Provider Registration
+
+### Repository Service Provider
+```php
+<?php
+
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use App\Repositories\Contracts\GoalRepositoryInterface;
+use App\Repositories\Contracts\UserRepositoryInterface;
+use App\Repositories\Contracts\ProgressRepositoryInterface;
+use App\Repositories\Eloquent\GoalRepository;
+use App\Repositories\Eloquent\UserRepository;
+use App\Repositories\Eloquent\ProgressRepository;
+
+class RepositoryServiceProvider extends ServiceProvider
+{
+    /**
+     * Register services.
+     */
+    public function register(): void
+    {
+        $this->app->bind(GoalRepositoryInterface::class, GoalRepository::class);
+        $this->app->bind(UserRepositoryInterface::class, UserRepository::class);
+        $this->app->bind(ProgressRepositoryInterface::class, ProgressRepository::class);
+    }
+
+    /**
+     * Bootstrap services.
+     */
+    public function boot(): void
+    {
+        //
+    }
+}
+```
+
+---
+
 ## 📚 Additional Resources
 
 ### Frontend Documentation
@@ -1845,6 +3022,11 @@ GET    /api/progress/export     - Export progress data
 - [Laravel Sanctum Authentication](https://laravel.com/docs/sanctum)
 - [Laravel Testing](https://laravel.com/docs/testing)
 
+### Design Patterns
+- [Repository Pattern in Laravel](https://asperbrothers.com/blog/repository-pattern-in-laravel/)
+- [Singleton Pattern in PHP](https://refactoring.guru/design-patterns/singleton/php/example)
+- [Laravel Service Container](https://laravel.com/docs/container)
+
 ---
 
-*This README serves as the definitive guide for MicroWins app development. The AI development agent must strictly adhere to these guidelines to ensure consistent, high-quality code generation that delivers an exceptional goal-tracking experience.*
+*This README serves as the definitive guide for MicroWins app development. The AI development agent must strictly adhere to these guidelines to ensure consistent, high-quality code generation that delivers an exceptional goal-tracking experience using Repository Architecture and Singleton Pattern implementations.*
