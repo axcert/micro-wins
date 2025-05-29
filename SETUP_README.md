@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 08:58:17  
-**Total Files Analyzed:** 12  
+**Generated on:** 2025-05-29 08:59:56  
+**Total Files Analyzed:** 14  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -89,25 +89,25 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-import ErrorBoundary from './components/ErrorBound
 const response = await fetch(`${ANALYTICS_API_URL}
-import * as Sentry from '@sentry/react-native';
+import { registerForPushNotifications, unregisterF
+const token = getAuthToken();
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 setTimeout(() => resolve(api(config)), 1000);
-return new Promise(resolve => {
-response => response,
+messaging().setBackgroundMessageHandler(async (rem
+.then((remoteMessage) => {
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
-export default Sentry.wrap(App);
-dsn: 'your-sentry-dsn',
-Sentry.init({
+if (config.__retryCount < 3) {
+config.__retryCount += 1;
+// Retry logic for idempotent requests
 ```
 
 ## 🔧 Common Issues & Solutions
