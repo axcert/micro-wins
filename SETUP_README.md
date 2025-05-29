@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 08:55:14  
-**Total Files Analyzed:** 6  
+**Generated on:** 2025-05-29 08:56:48  
+**Total Files Analyzed:** 9  
 **Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -58,6 +58,7 @@ nano .env
 ├── src/
   ├── api/
   ├── components/
+  ├── redux/
   ├── utils/
 ```
 
@@ -88,9 +89,9 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
+const response = await fetch(`${SUBSCRIPTION_API_U
 import ErrorBoundary from './components/ErrorBound
 import * as Sentry from '@sentry/react-native';
-import { View, Text } from 'react-native';
 ```
 
 ### Function Patterns
@@ -105,8 +106,8 @@ response => response,
 Follow these error handling patterns:
 ```
 export default Sentry.wrap(App);
-Sentry.captureException(error);
 dsn: 'your-sentry-dsn',
+Sentry.init({
 ```
 
 ## 🔧 Common Issues & Solutions
