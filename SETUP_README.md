@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:03:30  
-**Total Files Analyzed:** 12  
+**Generated on:** 2025-05-29 13:05:57  
+**Total Files Analyzed:** 15  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -80,15 +80,15 @@ Follow these import styles found in the codebase:
 ```
 import AppNavigator from './navigation/AppNavigato
 const response = await apiClient.get<DashboardSumm
-const handleRefresh = () => {
+import * as Sentry from '@sentry/react-native';
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 async (error: AxiosError) => {
-export const fetchSubscription = async (dispatch: 
 useEffect(() => {
+): Promise<ProgressChart[]> => {
 ```
 
 ### Error Handling
