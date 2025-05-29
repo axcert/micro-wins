@@ -6,14 +6,18 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 08:53:52  
-**Total Files Analyzed:** 1  
-**Technology Stack:** General
+**Generated on:** 2025-05-29 08:55:14  
+**Total Files Analyzed:** 6  
+**Technology Stack:** JavaScript/React
 
 ## 🛠️ Prerequisites
 
 Ensure you have the following installed on your system:
 
+- **Node.js** (version 14 or higher)
+- **npm** or **yarn** package manager
+- **Java JDK** (version 8 or higher)
+- **Maven** or **Gradle** build tool
 - **Git** version control system
 
 ## 📦 Installation Steps
@@ -51,7 +55,10 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── src/
+  ├── api/
+  ├── components/
+  ├── utils/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -60,13 +67,47 @@ Run commands will be determined based on your specific project setup.
 
 ## 🧪 Testing
 
-Testing commands will depend on your specific testing framework.
+
+### JavaScript/Node.js Testing
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
 
 ## 📝 Development Guidelines
 
 Based on the codebase analysis, follow these patterns:
 
-Coding guidelines are being analyzed from the codebase.
+
+### Import Patterns
+Follow these import styles found in the codebase:
+```
+import ErrorBoundary from './components/ErrorBound
+import * as Sentry from '@sentry/react-native';
+import { View, Text } from 'react-native';
+```
+
+### Function Patterns
+Follow these function definition styles:
+```
+setTimeout(() => resolve(api(config)), 1000);
+return new Promise(resolve => {
+response => response,
+```
+
+### Error Handling
+Follow these error handling patterns:
+```
+export default Sentry.wrap(App);
+Sentry.captureException(error);
+dsn: 'your-sentry-dsn',
+```
 
 ## 🔧 Common Issues & Solutions
 
@@ -89,6 +130,8 @@ Coding guidelines are being analyzed from the codebase.
 
 ## 📚 Additional Resources
 
+- [Node.js Documentation](https://nodejs.org/docs/)
+- [React Documentation](https://reactjs.org/docs/)
 - [Git Documentation](https://git-scm.com/doc)
 - [Project Repository](https://github.com/your-repo)
 
