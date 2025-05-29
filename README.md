@@ -328,6 +328,7 @@ export const typography = {
 ## 9. Design Principles
 
 ### UI/UX Guidelines
+- **Use suitable css, tailwind or any style to make interface attractive
 - **Simplicity First**: One primary action per screen
 - **Celebration**: Make completing tasks feel rewarding
 - **Progress Visibility**: Always show how far they've come
