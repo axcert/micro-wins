@@ -1,30 +1,45 @@
-import React from 'react';
-import { Provider } from 'react-redux';
-import * as Sentry from '@sentry/react-native';
-import ErrorBoundary from './components/ErrorBoundary'; 
 // ... existing imports
-
-Sentry.init({
-  dsn: 'your-sentry-dsn',
-  enableAutoSessionTracking: true,
-  sessionTrackingIntervalMillis: 10000,
-  tracesSampleRate: 0.5, // Adjust as needed
-});
+import { registerForPushNotifications, unregisterFromPushNotifications } from './api/notificationApi';
+import messaging from '@react-native-firebase/messaging';
+// ...
 
 const App = () => {
-  return (
-    <ErrorBoundary>
-      <Provider store={store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <NavigationContainer>
-            <Stack.Navigator>
-              {/* ... routes */} 
-            </Stack.Navigator>
-          </NavigationContainer>
-        </PersistGate>
-      </Provider>
-    </ErrorBoundary>
-  );
+  // ...
+
+  React.useEffect(() => {
+    const unsubscribe = messaging().onMessage(async (remoteMessage) => {
+      console.log('Notification received in foreground:', remoteMessage);
+      // Handle foreground notification
+    });
+
+    messaging().setBackgroundMessageHandler(async (remoteMessage) => {
+      console.log('Notification received in background:', remoteMessage);
+      // Handle background notification
+    });
+
+    messaging().onNotificationOpenedApp((remoteMessage) => {
+      console.log('Notification opened from background:', remoteMessage);
+      // Handle notification tapped in background
+    });
+
+    messaging()
+      .getInitialNotification()
+      .then((remoteMessage) => {
+        if (remoteMessage) {
+          console.log('Notification opened when app is closed:', remoteMessage);
+          // Handle notification when app is closed
+        }
+      });
+
+    registerForPushNotifications();
+
+    return () => {
+      unsubscribe();
+      unregisterFromPushNotifications();
+    };
+  }, []);
+
+  // ...
 };
 
-export default Sentry.wrap(App);
+// ...
