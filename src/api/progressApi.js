@@ -23,44 +23,56 @@ export const fetchStreakData = async (userId) => {
   }
 };
 
-export const fetchProgressTimeline = async (userId, startDate, endDate) => {
+export const fetchProgressChartData = async (userId, startDate, endDate) => {
   try {
-    const response = await api.get(`${PROGRESS_API_URL}/timeline/${userId}`, {
-      params: { startDate, endDate },
-    });
+    const response = await api.get(`${PROGRESS_API_URL}/chart/${userId}?start=${startDate}&end=${endDate}`);
     return response.data;
   } catch (error) {
-    handleError(error, 'Error fetching progress timeline');
+    handleError(error, 'Error fetching progress chart data');
     return null;
   }
 };
 
-export const fetchProgressStats = async (userId) => {
+export const fetchCompletionRate = async (userId) => {
   try {
-    const response = await api.get(`${PROGRESS_API_URL}/stats/${userId}`);
+    const response = await api.get(`${PROGRESS_API_URL}/completion-rate/${userId}`);
     return response.data;
   } catch (error) {
-    handleError(error, 'Error fetching progress stats');
+    handleError(error, 'Error fetching completion rate');
     return null;
   }
 };
 
-export const fetchAchievements = async (userId) => {
+export const fetchTaskHistory = async (userId) => {
   try {
-    const response = await api.get(`${PROGRESS_API_URL}/achievements/${userId}`);
+    const response = await api.get(`${PROGRESS_API_URL}/task-history/${userId}`); 
     return response.data;
   } catch (error) {
-    handleError(error, 'Error fetching achievements');
+    handleError(error, 'Error fetching task history');
     return null;
   }
 };
 
 export const exportProgressData = async (userId) => {
-  try {
-    const response = await api.get(`${PROGRESS_API_URL}/export/${userId}`);
+  try {    
+    const response = await api.get(`${PROGRESS_API_URL}/export/${userId}`, {
+      responseType: 'blob',
+    });
     return response.data;
   } catch (error) {
     handleError(error, 'Error exporting progress data');
+    return null;  
+  }
+};
+
+export const shareProgressImage = async (userId) => {
+  try {
+    const response = await api.get(`${PROGRESS_API_URL}/share-image/${userId}`, {
+      responseType: 'blob',  
+    });
+    return response.data;
+  } catch (error) {
+    handleError(error, 'Error generating progress share image');
     return null;
   }
 };
