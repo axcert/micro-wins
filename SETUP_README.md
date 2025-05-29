@@ -6,9 +6,9 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 10:38:31  
-**Total Files Analyzed:** 2  
-**Technology Stack:** General
+**Generated on:** 2025-05-29 10:40:30  
+**Total Files Analyzed:** 6  
+**Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
 
@@ -51,7 +51,16 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── frontend/
+  ├── src/
+    ├── components/
+      ├── profile/
+    ├── screens/
+      ├── profile/
+    ├── services/
+      ├── api/
+    ├── store/
+      ├── slices/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -66,7 +75,29 @@ Testing commands will depend on your specific testing framework.
 
 Based on the codebase analysis, follow these patterns:
 
-Coding guidelines are being analyzed from the codebase.
+
+### Import Patterns
+Follow these import styles found in the codebase:
+```
+const subscriptionFeatures = [
+import { View, Text } from 'react-native';
+const purchaseToken = await purchaseSubscription()
+```
+
+### Function Patterns
+Follow these function definition styles:
+```
+export const purchaseSubscription = async () => {
+return new Promise((resolve) => {
+useEffect(() => {
+```
+
+### Error Handling
+Follow these error handling patterns:
+```
+} catch (err) {
+try {
+```
 
 ## 🔧 Common Issues & Solutions
 
