@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:26:52  
-**Total Files Analyzed:** 41  
+**Generated on:** 2025-05-29 13:28:46  
+**Total Files Analyzed:** 44  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -63,9 +63,9 @@ nano .env
     ├── components/
       ├── common/
     ├── screens/
+      ├── profile/
     ├── services/
       ├── api/
-    ├── store/
 ```
 
 ## 🏃‍♂️ Running the Project
