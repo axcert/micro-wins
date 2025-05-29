@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 10:41:52  
-**Total Files Analyzed:** 11  
+**Generated on:** 2025-05-29 10:43:45  
+**Total Files Analyzed:** 14  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -59,6 +59,7 @@ nano .env
       ├── profile/
     ├── services/
       ├── api/
+      ├── notifications/
     ├── store/
       ├── slices/
 ```
@@ -79,16 +80,16 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const subscriptionFeatures = [
-import { View, Text } from 'react-native';
-const initialState: AnalyticsState = {
+const response = await axios.get(`${API_URL}/analy
+const App = () => {
+const response = await axiosInstance.post('/users/
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 export const purchaseSubscription = async () => {
-async (_, { rejectWithValue }) => {
+export const updateNotificationToken = async (toke
 return new Promise((resolve) => {
 ```
 
