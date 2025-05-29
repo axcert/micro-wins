@@ -1,79 +1,87 @@
-import { createSlice } from '@reduxjs/toolkit';
-import { loginUser, registerUser, logoutUser } from '../api/authApi';
+import { createSlice, createAsyncThunk } from '@reduxjs/toolkit';
+import * as AuthAPI from '../api/authApi';
 
-const initialState = {
-  user: null,
-  isAuthenticated: false,
-  isLoading: false,
-  error: null,
-};
+export const registerAsync = createAsyncThunk(
+  'auth/register',
+  async (userData, { rejectWithValue }) => {
+    try {
+      const response = await AuthAPI.registerUser(userData);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
 
-export const authSlice = createSlice({
+export const loginAsync = createAsyncThunk(
+  'auth/login',
+  async (credentials, { rejectWithValue }) => {
+    try {
+      const response = await AuthAPI.loginUser(credentials);
+      return response;
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+export const logoutAsync = createAsyncThunk(
+  'auth/logout',
+  async (_, { rejectWithValue }) => {
+    try {
+      await AuthAPI.logoutUser();
+    } catch (error) {
+      return rejectWithValue(error.response.data);
+    }
+  }
+);
+
+const authSlice = createSlice({
   name: 'auth',
-  initialState,
-  reducers: {
-    setUser: (state, action) => {
-      state.user = action.payload;
-      state.isAuthenticated = true;
-    },
-    clearUser: (state) => {
-      state.user = null;
-      state.isAuthenticated = false;
-    },
-    setLoading: (state, action) => {
-      state.isLoading = action.payload;
-    },
-    setError: (state, action) => {
-      state.error = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
+  initialState: {
+    user: null,
+    token: null,
+    isAuthenticated: false,
+    isLoading: false,
+    error: null,
+  },
+  reducers: {},
+  extraReducers: (builder) => {
+    builder
+      .addCase(registerAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(registerAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+      })
+      .addCase(registerAsync.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(loginAsync.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
+      .addCase(loginAsync.fulfilled, (state, action) => {
+        state.isLoading = false;
+        state.user = action.payload.user;
+        state.token = action.payload.token;
+        state.isAuthenticated = true;
+      })
+      .addCase(loginAsync.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.payload;
+      })
+      .addCase(logoutAsync.fulfilled, (state) => {
+        state.user = null;
+        state.token = null;
+        state.isAuthenticated = false;
+      });
   },
 });
-
-export const { setUser, clearUser, setLoading, setError, clearError } = authSlice.actions;
-
-export const loginAsync = (credentials) => async (dispatch) => {
-  dispatch(setLoading(true));
-  dispatch(clearError());
-
-  try {
-    const data = await loginUser(credentials);
-    dispatch(setUser(data.user));
-    dispatch(setLoading(false));
-  } catch (error) {
-    dispatch(setError(error.message));
-    dispatch(setLoading(false));
-  }
-};
-
-export const registerAsync = (userData) => async (dispatch) => {
-  dispatch(setLoading(true));
-  dispatch(clearError());
-
-  try {
-    const data = await registerUser(userData);
-    dispatch(setUser(data.user));
-    dispatch(setLoading(false));
-  } catch (error) {
-    dispatch(setError(error.message));
-    dispatch(setLoading(false));
-  }
-};
-
-export const logoutAsync = () => async (dispatch) => {
-  dispatch(setLoading(true));
-  dispatch(clearError());
-
-  try {
-    await logoutUser();
-    dispatch(clearUser());
-    dispatch(setLoading(false));
-  } catch (error) {
-    dispatch(setError(error.message));
-    dispatch(setLoading(false));
-  }
-};
 
 export default authSlice.reducer;
