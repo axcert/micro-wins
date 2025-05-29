@@ -114,633 +114,6 @@ backend/
 
 ---
 
-## 💻 Frontend Coding Standards
-
-### React Native Component Patterns
-
-#### Component Structure
-```tsx
-// ✅ Standard React Native component structure
-import React, { useState, useEffect, useCallback } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity } from 'react-native';
-import { useSelector, useDispatch } from 'react-redux';
-import { Card, Button } from 'react-native-elements';
-import { GoalType, MicroStepType } from '@/types';
-import { colors, spacing, typography } from '@/constants/theme';
-
-interface GoalCardProps {
-  goal: GoalType;
-  onPress: (goalId: string) => void;
-  onComplete: (stepId: string) => void;
-  style?: ViewStyle;
-}
-
-export default function GoalCard({ 
-  goal, 
-  onPress, 
-  onComplete, 
-  style 
-}: GoalCardProps) {
-  // 1. Hooks and state
-  const [isCompleting, setIsCompleting] = useState(false);
-  const dispatch = useDispatch();
-  const progress = useSelector(state => state.goals.progress[goal.id]);
-  
-  // 2. Effects
-  useEffect(() => {
-    // Load progress data if needed
-  }, [goal.id]);
-  
-  // 3. Event handlers
-  const handleComplete = useCallback(async () => {
-    try {
-      setIsCompleting(true);
-      await onComplete(goal.currentStep.id);
-      // Show celebration animation
-    } catch (error) {
-      console.error('Failed to complete step:', error);
-    } finally {
-      setIsCompleting(false);
-    }
-  }, [goal.currentStep.id, onComplete]);
-  
-  // 4. Render helpers
-  const renderProgressBar = () => (
-    <View style={styles.progressContainer}>
-      <View 
-        style={[
-          styles.progressBar, 
-          { width: `${progress}%` }
-        ]} 
-      />
-    </View>
-  );
-  
-  // 5. Main render
-  return (
-    <Card containerStyle={[styles.container, style]}>
-      <Text style={styles.title}>{goal.title}</Text>
-      {renderProgressBar()}
-      <Text style={styles.currentStep}>
-        Today's 1%: {goal.currentStep.title}
-      </Text>
-      <Button
-        title={isCompleting ? "Completing..." : "Mark Complete"}
-        onPress={handleComplete}
-        disabled={isCompleting}
-        buttonStyle={styles.completeButton}
-      />
-    </Card>
-  );
-}
-
-const styles = StyleSheet.create({
-  container: {
-    borderRadius: spacing.md,
-    marginVertical: spacing.sm,
-    padding: spacing.md,
-  },
-  title: {
-    ...typography.h3,
-    color: colors.text.primary,
-    marginBottom: spacing.sm,
-  },
-  progressContainer: {
-    height: 8,
-    backgroundColor: colors.background.secondary,
-    borderRadius: 4,
-    marginBottom: spacing.md,
-  },
-  progressBar: {
-    height: '100%',
-    backgroundColor: colors.primary,
-    borderRadius: 4,
-  },
-  currentStep: {
-    ...typography.body,
-    color: colors.text.secondary,
-    marginBottom: spacing.md,
-  },
-  completeButton: {
-    backgroundColor: colors.primary,
-    borderRadius: spacing.sm,
-  },
-});
-```
-
-#### Redux Toolkit Patterns
-```tsx
-// ✅ Redux slice structure
-import { createSlice, createAsyncThunk, PayloadAction } from '@reduxjs/toolkit';
-import { goalService } from '@/services/api/goalService';
-import { GoalType, CreateGoalRequest } from '@/types';
-
-interface GoalState {
-  goals: GoalType[];
-  currentGoal: GoalType | null;
-  loading: boolean;
-  error: string | null;
-  progress: Record<string, number>;
-}
-
-const initialState: GoalState = {
-  goals: [],
-  currentGoal: null,
-  loading: false,
-  error: null,
-  progress: {},
-};
-
-// ✅ Async thunks for API calls
-export const createGoal = createAsyncThunk(
-  'goals/create',
-  async (goalData: CreateGoalRequest, { rejectWithValue }) => {
-    try {
-      const response = await goalService.createGoal(goalData);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to create goal');
-    }
-  }
-);
-
-export const completeStep = createAsyncThunk(
-  'goals/completeStep',
-  async (stepId: string, { rejectWithValue, getState }) => {
-    try {
-      const response = await goalService.completeStep(stepId);
-      return response.data;
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to complete step');
-    }
-  }
-);
-
-const goalSlice = createSlice({
-  name: 'goals',
-  initialState,
-  reducers: {
-    setCurrentGoal: (state, action: PayloadAction<GoalType>) => {
-      state.currentGoal = action.payload;
-    },
-    clearError: (state) => {
-      state.error = null;
-    },
-    updateProgress: (state, action: PayloadAction<{ goalId: string; progress: number }>) => {
-      state.progress[action.payload.goalId] = action.payload.progress;
-    },
-  },
-  extraReducers: (builder) => {
-    builder
-      .addCase(createGoal.pending, (state) => {
-        state.loading = true;
-        state.error = null;
-      })
-      .addCase(createGoal.fulfilled, (state, action) => {
-        state.loading = false;
-        state.goals.push(action.payload);
-      })
-      .addCase(createGoal.rejected, (state, action) => {
-        state.loading = false;
-        state.error = action.payload as string;
-      })
-      .addCase(completeStep.fulfilled, (state, action) => {
-        const { goalId, progress } = action.payload;
-        state.progress[goalId] = progress;
-        // Update current goal if needed
-        if (state.currentGoal?.id === goalId) {
-          state.currentGoal = action.payload.goal;
-        }
-      });
-  },
-});
-
-export const { setCurrentGoal, clearError, updateProgress } = goalSlice.actions;
-export default goalSlice.reducer;
-```
-
-#### Custom Hooks Patterns
-```tsx
-// ✅ Custom hook for goal management
-import { useState, useEffect, useCallback } from 'react';
-import { useSelector, useDispatch } from 'react-redux';
-import { RootState } from '@/store';
-import { createGoal, completeStep } from '@/store/slices/goalSlice';
-import { GoalType, CreateGoalRequest } from '@/types';
-
-export const useGoalManagement = () => {
-  const dispatch = useDispatch();
-  const { goals, currentGoal, loading, error } = useSelector(
-    (state: RootState) => state.goals
-  );
-
-  const [celebrationVisible, setCelebrationVisible] = useState(false);
-
-  const createNewGoal = useCallback(async (goalData: CreateGoalRequest) => {
-    try {
-      const result = await dispatch(createGoal(goalData)).unwrap();
-      return result;
-    } catch (error) {
-      throw new Error(error);
-    }
-  }, [dispatch]);
-
-  const completeCurrentStep = useCallback(async (stepId: string) => {
-    try {
-      const result = await dispatch(completeStep(stepId)).unwrap();
-      setCelebrationVisible(true);
-      
-      // Hide celebration after 3 seconds
-      setTimeout(() => setCelebrationVisible(false), 3000);
-      
-      return result;
-    } catch (error) {
-      throw new Error(error);
-    }
-  }, [dispatch]);
-
-  const getTodaysTask = useCallback(() => {
-    if (!currentGoal) return null;
-    return currentGoal.microSteps.find(step => !step.completed_at);
-  }, [currentGoal]);
-
-  return {
-    goals,
-    currentGoal,
-    loading,
-    error,
-    celebrationVisible,
-    createNewGoal,
-    completeCurrentStep,
-    getTodaysTask,
-  };
-};
-```
-
----
-
-## 🔧 Backend Coding Standards
-
-### Express.js API Patterns
-
-#### Controller Structure
-```javascript
-// ✅ Standard controller structure
-const goalService = require('../services/goalService');
-const aiService = require('../services/aiService');
-const { validationResult } = require('express-validator');
-const asyncHandler = require('../utils/asyncHandler');
-
-class GoalController {
-  // ✅ Create new goal with AI decomposition
-  createGoal = asyncHandler(async (req, res) => {
-    // 1. Validate input
-    const errors = validationResult(req);
-    if (!errors.isEmpty()) {
-      return res.status(400).json({
-        success: false,
-        message: 'Validation error',
-        errors: errors.array()
-      });
-    }
-
-    const { title, category, targetDays, difficultyPreference } = req.body;
-    const userId = req.user.id;
-
-    try {
-      // 2. Generate micro-steps using AI
-      const microSteps = await aiService.generateMicroSteps({
-        goalTitle: title,
-        category,
-        targetDays,
-        difficulty: difficultyPreference
-      });
-
-      // 3. Create goal in database
-      const goal = await goalService.createGoal({
-        userId,
-        title,
-        category,
-        targetDays,
-        microSteps
-      });
-
-      // 4. Return success response
-      res.status(201).json({
-        success: true,
-        message: 'Goal created successfully',
-        data: goal
-      });
-
-    } catch (error) {
-      console.error('Goal creation failed:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to create goal',
-        error: process.env.NODE_ENV === 'development' ? error.message : undefined
-      });
-    }
-  });
-
-  // ✅ Complete a micro-step
-  completeStep = asyncHandler(async (req, res) => {
-    const { stepId } = req.params;
-    const userId = req.user.id;
-
-    try {
-      // 1. Verify step belongs to user
-      const step = await goalService.getStepById(stepId);
-      if (!step || step.goal.userId !== userId) {
-        return res.status(404).json({
-          success: false,
-          message: 'Step not found'
-        });
-      }
-
-      // 2. Mark step as completed
-      const result = await goalService.completeStep(stepId);
-
-      // 3. Calculate updated progress
-      const progress = await goalService.calculateProgress(step.goalId);
-
-      // 4. Trigger celebration if milestone reached
-      if (progress % 10 === 0) {
-        await goalService.createMilestone(step.goalId, progress);
-      }
-
-      res.json({
-        success: true,
-        message: 'Step completed successfully',
-        data: {
-          step: result,
-          progress,
-          goal: step.goal
-        }
-      });
-
-    } catch (error) {
-      console.error('Step completion failed:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to complete step'
-      });
-    }
-  });
-
-  // ✅ Get user's active goals
-  getUserGoals = asyncHandler(async (req, res) => {
-    const userId = req.user.id;
-    const { status = 'active' } = req.query;
-
-    try {
-      const goals = await goalService.getUserGoals(userId, { status });
-      
-      res.json({
-        success: true,
-        data: goals,
-        meta: {
-          count: goals.length,
-          status
-        }
-      });
-
-    } catch (error) {
-      console.error('Failed to fetch goals:', error);
-      res.status(500).json({
-        success: false,
-        message: 'Failed to fetch goals'
-      });
-    }
-  });
-}
-
-module.exports = new GoalController();
-```
-
-#### Service Layer Patterns
-```javascript
-// ✅ Service layer for business logic
-const { Goal, MicroStep, User } = require('../models');
-const { Op } = require('sequelize');
-const notificationService = require('./notificationService');
-
-class GoalService {
-  // ✅ Create goal with transaction
-  async createGoal({ userId, title, category, targetDays, microSteps }) {
-    const transaction = await Goal.sequelize.transaction();
-
-    try {
-      // 1. Create the goal
-      const goal = await Goal.create({
-        userId,
-        title,
-        category,
-        targetDays,
-        status: 'active',
-        createdAt: new Date()
-      }, { transaction });
-
-      // 2. Create micro-steps
-      const stepsData = microSteps.map((step, index) => ({
-        goalId: goal.id,
-        order: index + 1,
-        title: step.title,
-        description: step.description,
-        tips: step.tips || []
-      }));
-
-      await MicroStep.bulkCreate(stepsData, { transaction });
-
-      // 3. Commit transaction
-      await transaction.commit();
-
-      // 4. Schedule first notification
-      await notificationService.scheduleGoalReminder(userId, goal.id);
-
-      // 5. Return goal with steps
-      return await this.getGoalById(goal.id);
-
-    } catch (error) {
-      await transaction.rollback();
-      throw new Error(`Failed to create goal: ${error.message}`);
-    }
-  }
-
-  // ✅ Complete step with validation
-  async completeStep(stepId) {
-    try {
-      const step = await MicroStep.findByPk(stepId, {
-        include: [{ model: Goal, include: [User] }]
-      });
-
-      if (!step) {
-        throw new Error('Step not found');
-      }
-
-      if (step.completedAt) {
-        throw new Error('Step already completed');
-      }
-
-      // Mark as completed
-      step.completedAt = new Date();
-      await step.save();
-
-      // Update user stats
-      await this.updateUserStats(step.goal.userId);
-
-      return step;
-
-    } catch (error) {
-      throw new Error(`Failed to complete step: ${error.message}`);
-    }
-  }
-
-  // ✅ Calculate progress percentage
-  async calculateProgress(goalId) {
-    const totalSteps = await MicroStep.count({
-      where: { goalId }
-    });
-
-    const completedSteps = await MicroStep.count({
-      where: { 
-        goalId,
-        completedAt: { [Op.not]: null }
-      }
-    });
-
-    return Math.round((completedSteps / totalSteps) * 100);
-  }
-
-  // ✅ Get user's goals with filtering
-  async getUserGoals(userId, options = {}) {
-    const whereClause = { userId };
-    
-    if (options.status) {
-      whereClause.status = options.status;
-    }
-
-    return await Goal.findAll({
-      where: whereClause,
-      include: [
-        {
-          model: MicroStep,
-          where: { completedAt: null },
-          required: false,
-          limit: 1,
-          order: [['order', 'ASC']]
-        }
-      ],
-      order: [['createdAt', 'DESC']]
-    });
-  }
-}
-
-module.exports = new GoalService();
-```
-
-#### AI Integration Service
-```javascript
-// ✅ AI service for goal decomposition
-const OpenAI = require('openai');
-const config = require('../config/env');
-
-class AIService {
-  constructor() {
-    this.openai = new OpenAI({
-      apiKey: config.OPENAI_API_KEY
-    });
-  }
-
-  // ✅ Generate 100 micro-steps for a goal
-  async generateMicroSteps({ goalTitle, category, targetDays, difficulty }) {
-    const prompt = this.buildMicroStepsPrompt(goalTitle, category, targetDays, difficulty);
-
-    try {
-      const response = await this.openai.chat.completions.create({
-        model: 'gpt-4',
-        messages: [
-          {
-            role: 'system',
-            content: 'You are an expert life coach who breaks down big goals into 100 manageable micro-steps.'
-          },
-          {
-            role: 'user',
-            content: prompt
-          }
-        ],
-        temperature: 0.7,
-        max_tokens: 3000
-      });
-
-      const microSteps = this.parseMicroStepsResponse(response.choices[0].message.content);
-      
-      if (microSteps.length !== 100) {
-        throw new Error(`Expected 100 steps, got ${microSteps.length}`);
-      }
-
-      return microSteps;
-
-    } catch (error) {
-      console.error('AI generation failed:', error);
-      throw new Error('Failed to generate micro-steps');
-    }
-  }
-
-  // ✅ Build AI prompt
-  buildMicroStepsPrompt(goalTitle, category, targetDays, difficulty) {
-    return `
-Generate exactly 100 micro-steps to achieve this goal: "${goalTitle}"
-
-Requirements:
-- Category: ${category}
-- Timeline: ${targetDays} days
-- Difficulty: ${difficulty}
-- Each step should be completable in 15-30 minutes
-- Steps should build upon each other logically
-- Include variety to maintain engagement
-- Make steps specific and actionable
-
-Format each step as JSON:
-{
-  "title": "Brief, actionable title",
-  "description": "Detailed instructions",
-  "tips": ["helpful tip 1", "helpful tip 2"]
-}
-
-Return as a JSON array of exactly 100 steps.
-`;
-  }
-
-  // ✅ Parse AI response
-  parseMicroStepsResponse(response) {
-    try {
-      // Clean and parse JSON response
-      const cleanedResponse = response.replace(/```json\n?|\n?```/g, '').trim();
-      const steps = JSON.parse(cleanedResponse);
-      
-      // Validate structure
-      if (!Array.isArray(steps)) {
-        throw new Error('Response is not an array');
-      }
-
-      return steps.map((step, index) => ({
-        order: index + 1,
-        title: step.title || `Step ${index + 1}`,
-        description: step.description || step.title,
-        tips: Array.isArray(step.tips) ? step.tips : []
-      }));
-
-    } catch (error) {
-      console.error('Failed to parse AI response:', error);
-      throw new Error('Invalid AI response format');
-    }
-  }
-}
-
-module.exports = new AIService();
-```
-
----
 
 ## 🎨 UI/UX Guidelines
 
@@ -804,350 +177,171 @@ export const typography = {
 };
 ```
 
-### Animation Guidelines
-```tsx
-// ✅ Celebration animation component
-import React from 'react';
-import { Modal, View, StyleSheet } from 'react-native';
-import LottieView from 'lottie-react-native';
+## 3. Core Features
 
-interface CelebrationModalProps {
-  visible: boolean;
-  onComplete: () => void;
-  type?: 'step' | 'milestone' | 'goal';
-}
+### 3.1 Goal Creation Flow
+1. **Goal Input Screen**
+   - Natural language input field
+   - Category selection (optional)
+   - Difficulty preference (Easy/Medium/Hard)
+   - Timeline preference (30/60/90/365 days)
 
-export default function CelebrationModal({ 
-  visible, 
-  onComplete, 
-  type = 'step' 
-}: CelebrationModalProps) {
-  const getAnimationSource = () => {
-    switch (type) {
-      case 'milestone':
-        return require('@/assets/animations/milestone-celebration.json');
-      case 'goal':
-        return require('@/assets/animations/goal-completion.json');
-      default:
-        return require('@/assets/animations/step-complete.json');
-    }
-  };
+2. **AI Goal Processing**
+   - Analyze user's goal
+   - Generate 100 sequential micro-steps
+   - Ensure logical progression
+   - Add variety to maintain engagement
 
-  return (
-    <Modal visible={visible} transparent animationType="fade">
-      <View style={styles.container}>
-        <LottieView
-          source={getAnimationSource()}
-          autoPlay
-          loop={false}
-          onAnimationFinish={onComplete}
-          style={styles.animation}
-        />
-      </View>
-    </Modal>
-  );
-}
+3. **Goal Review & Customization**
+   - Preview generated steps
+   - Edit individual steps
+   - Reorder if needed
+   - Approve and start
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
-    backgroundColor: 'rgba(0, 0, 0, 0.5)',
-  },
-  animation: {
-    width: 200,
-    height: 200,
-  },
-});
-```
+### 3.2 Daily Experience
+1. **Today's Mission**
+   - Single card showing today's 1% task
+   - Clear, actionable instruction
+   - Optional hints/tips
+   - "Complete" button
 
----
+2. **Progress Tracking**
+   - Visual progress bar (0-100%)
+   - Streak counter
+   - Calendar heat map
+   - Statistics dashboard
 
-## 🔒 Security Guidelines
+3. **Motivation System**
+   - Daily notifications
+   - Milestone celebrations
+   - Achievement badges
+   - Progress sharing
 
-### Authentication Patterns
-```tsx
-// ✅ Firebase Auth integration
-import auth from '@react-native-firebase/auth';
-import { GoogleSignin } from '@react-native-google-signin/google-signin';
+### 3.3 Additional Features
+- **Multiple Active Goals**: Track up to 3 goals simultaneously
+- **Community**: Share and discover goal templates
+- **Flexibility**: Skip, swap, or modify daily tasks
+- **Reflection**: Weekly check-ins and progress reviews
+- **Integration**: Calendar sync, widget support
 
-class AuthService {
-  // ✅ Initialize authentication
-  async initialize() {
-    GoogleSignin.configure({
-      webClientId: 'your-web-client-id',
-    });
-  }
+## 4. Data Models
 
-  // ✅ Email/password login
-  async loginWithEmail(email: string, password: string) {
-    try {
-      const userCredential = await auth().signInWithEmailAndPassword(email, password);
-      const token = await userCredential.user.getIdToken();
-      
-      // Store token securely
-      await this.storeToken(token);
-      
-      return userCredential.user;
-    } catch (error) {
-      console.error('Login failed:', error);
-      throw this.handleAuthError(error);
-    }
-  }
-
-  // ✅ Google Sign-In
-  async loginWithGoogle() {
-    try {
-      await GoogleSignin.hasPlayServices();
-      const { idToken } = await GoogleSignin.signIn();
-      
-      const googleCredential = auth.GoogleAuthProvider.credential(idToken);
-      const userCredential = await auth().signInWithCredential(googleCredential);
-      
-      const token = await userCredential.user.getIdToken();
-      await this.storeToken(token);
-      
-      return userCredential.user;
-    } catch (error) {
-      console.error('Google login failed:', error);
-      throw this.handleAuthError(error);
-    }
-  }
-
-  // ✅ Secure token storage
-  private async storeToken(token: string) {
-    try {
-      await Keychain.setInternetCredentials(
-        'microwins_auth',
-        'auth_token',
-        token
-      );
-    } catch (error) {
-      console.error('Failed to store token:', error);
-    }
-  }
-
-  // ✅ Error handling
-  private handleAuthError(error: any) {
-    const errorCode = error.code;
-    
-    switch (errorCode) {
-      case 'auth/user-not-found':
-        return new Error('No account found with this email');
-      case 'auth/wrong-password':
-        return new Error('Incorrect password');
-      case 'auth/invalid-email':
-        return new Error('Invalid email address');
-      default:
-        return new Error('Authentication failed');
-    }
+### User
+```json
+{
+  "id": "uuid",
+  "email": "string",
+  "name": "string",
+  "created_at": "timestamp",
+  "preferences": {
+    "notification_time": "09:00",
+    "difficulty_preference": "medium"
   }
 }
 ```
 
----
-
-## 📊 Data Models
-
-### TypeScript Interfaces
-```tsx
-// ✅ Core data types
-export interface User {
-  id: string;
-  email: string;
-  name: string;
-  createdAt: string;
-  preferences: UserPreferences;
-}
-
-export interface UserPreferences {
-  notificationTime: string; // "09:00"
-  difficultyPreference: 'easy' | 'medium' | 'hard';
-  celebrationStyle: 'minimal' | 'full';
-  theme: 'light' | 'dark' | 'auto';
-}
-
-export interface Goal {
-  id: string;
-  userId: string;
-  title: string;
-  category: GoalCategory;
-  createdAt: string;
-  targetDays: number;
-  status: 'active' | 'paused' | 'completed';
-  currentStep?: MicroStep;
-  progress: number;
-}
-
-export interface MicroStep {
-  id: string;
-  goalId: string;
-  order: number;
-  title: string;
-  description: string;
-  tips: string[];
-  completedAt: string | null;
-  skippedAt: string | null;
-}
-
-export interface UserProgress {
-  id: string;
-  userId: string;
-  goalId: string;
-  stepId: string;
-  completedAt: string;
-  timeSpent?: number; // in minutes
-  notes?: string;
-}
-
-export type GoalCategory = 
-  | 'health' 
-  | 'career' 
-  | 'relationships' 
-  | 'learning' 
-  | 'creativity' 
-  | 'finance' 
-  | 'personal';
-
-// ✅ API request/response types
-export interface CreateGoalRequest {
-  title: string;
-  category: GoalCategory;
-  targetDays: number;
-  difficultyPreference: 'easy' | 'medium' | 'hard';
-}
-
-export interface ApiResponse<T> {
-  success: boolean;
-  message: string;
-  data?: T;
-  error?: string;
-  meta?: Record<string, any>;
+### Goal
+```json
+{
+  "id": "uuid",
+  "user_id": "uuid",
+  "title": "Attract people",
+  "category": "social",
+  "created_at": "timestamp",
+  "target_days": 100,
+  "status": "active|paused|completed"
 }
 ```
 
----
-
-## 🧪 Testing Guidelines
-
-### React Native Testing Patterns
-```tsx
-// ✅ Component testing with React Native Testing Library
-import React from 'react';
-import { render, fireEvent, waitFor } from '@testing-library/react-native';
-import { Provider } from 'react-redux';
-import { store } from '@/store';
-import GoalCard from '@/components/GoalCard';
-import { mockGoal } from '@/tests/mocks';
-
-describe('GoalCard', () => {
-  const defaultProps = {
-    goal: mockGoal,
-    onPress: jest.fn(),
-    onComplete: jest.fn(),
-  };
-
-  const renderComponent = (props = {}) => {
-    return render(
-      <Provider store={store}>
-        <GoalCard {...defaultProps} {...props} />
-      </Provider>
-    );
-  };
-
-  beforeEach(() => {
-    jest.clearAllMocks();
-  });
-
-  it('should render goal title and current step', () => {
-    const { getByText } = renderComponent();
-    
-    expect(getByText(mockGoal.title)).toBeTruthy();
-    expect(getByText(`Today's 1%: ${mockGoal.currentStep.title}`)).toBeTruthy();
-  });
-
-  it('should call onComplete when complete button is pressed', async () => {
-    const onComplete = jest.fn();
-    const { getByText } = renderComponent({ onComplete });
-    
-    fireEvent.press(getByText('Mark Complete'));
-    
-    await waitFor(() => {
-      expect(onComplete).toHaveBeenCalledWith(mockGoal.currentStep.id);
-    });
-  });
-
-  it('should show loading state when completing step', async () => {
-    const { getByText } = renderComponent();
-    
-    fireEvent.press(getByText('Mark Complete'));
-    
-    expect(getByText('Completing...')).toBeTruthy();
-  });
-});
+### MicroStep
+```json
+{
+  "id": "uuid",
+  "goal_id": "uuid",
+  "order": 1,
+  "title": "Make eye contact with 3 strangers",
+  "description": "When walking today, practice making brief eye contact...",
+  "tips": ["Start with people walking dogs", "Smile gently"],
+  "completed_at": "timestamp|null"
+}
 ```
 
-### Backend Testing Patterns
-```javascript
-// ✅ API endpoint testing
-const request = require('supertest');
-const app = require('../src/app');
-const { Goal, MicroStep, User } = require('../src/models');
-const { createTestUser, createTestGoal } = require('./helpers');
+## 5. User Flow Diagrams
 
-describe('POST /api/goals', () => {
-  let user;
-  let authToken;
+### New User Journey
+1. Onboarding → 2. Create First Goal → 3. Review 100 Steps → 4. Set Notification Time → 5. Complete First Task
 
-  beforeEach(async () => {
-    user = await createTestUser();
-    authToken = user.generateAuthToken();
-  });
+### Daily User Journey
+1. Notification → 2. Open App → 3. View Today's Task → 4. Complete Task → 5. See Progress Update → 6. Share Achievement (optional)
 
-  afterEach(async () => {
-    await Goal.destroy({ where: {} });
-    await User.destroy({ where: {} });
-  });
+## 6. Monetization Strategy
 
-  it('should create a new goal with micro-steps', async () => {
-    const goalData = {
-      title: 'Learn Spanish',
-      category: 'learning',
-      targetDays: 100,
-      difficultyPreference: 'medium'
-    };
+### Freemium Model
+- **Free**: 1 active goal, basic features
+- **Premium** ($4.99/month):
+  - Unlimited goals
+  - AI goal coach
+  - Advanced analytics
+  - Custom themes
+  - Priority support
 
-    const response = await request(app)
-      .post('/api/goals')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send(goalData)
-      .expect(201);
+### Additional Revenue
+- Goal template marketplace
+- Coaching add-ons
+- Corporate/team plans
 
-    expect(response.body.success).toBe(true);
-    expect(response.body.data.title).toBe(goalData.title);
-    expect(response.body.data.microSteps).toHaveLength(100);
-  });
+## 7. Success Metrics
 
-  it('should return validation error for invalid input', async () => {
-    const invalidData = {
-      title: '', // Empty title
-      category: 'invalid-category'
-    };
+### User Engagement
+- Daily Active Users (DAU)
+- Average session duration
+- Task completion rate
+- Streak length distribution
 
-    const response = await request(app)
-      .post('/api/goals')
-      .set('Authorization', `Bearer ${authToken}`)
-      .send(invalidData)
-      .expect(400);
+### Business Metrics
+- User retention (D1, D7, D30)
+- Conversion to premium
+- Customer Lifetime Value (CLV)
+- Net Promoter Score (NPS)
 
-    expect(response.body.success).toBe(false);
-    expect(response.body.errors).toBeDefined();
-  });
-});
-```
+## 8. MVP Feature Set
 
----
+### Phase 1 (Launch)
+- Single goal tracking
+- AI goal decomposition
+- Daily task delivery
+- Basic progress tracking
+- Push notifications
+
+### Phase 2 (Month 2-3)
+- Multiple goals
+- Community templates
+- Streak system
+- Social sharing
+
+### Phase 3 (Month 4-6)
+- Advanced analytics
+- AI coaching
+- Team challenges
+- Integrations
+
+## 9. Design Principles
+
+### UI/UX Guidelines
+- **Simplicity First**: One primary action per screen
+- **Celebration**: Make completing tasks feel rewarding
+- **Progress Visibility**: Always show how far they've come
+- **Gentle Nudges**: Encouraging, not demanding
+- **Accessibility**: High contrast, clear typography
+
+### Brand Personality
+- Supportive friend, not drill sergeant
+- Celebrates small wins
+- Growth-minded
+- Inclusive and non-judgmental
+
+
+
 
 ## ⚠️ Critical Rules for AI Agent
 
