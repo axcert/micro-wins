@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 12:57:06  
-**Total Files Analyzed:** 6  
+**Generated on:** 2025-05-29 12:59:25  
+**Total Files Analyzed:** 9  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -55,6 +55,7 @@ nano .env
   ├── src/
     ├── components/
       ├── common/
+    ├── screens/
     ├── services/
       ├── api/
     ├── store/
@@ -78,24 +79,24 @@ Based on the codebase analysis, follow these patterns:
 Follow these import styles found in the codebase:
 ```
 import AppNavigator from './navigation/AppNavigato
-import ErrorBoundary from './components/common/Err
-const state = store.getState();
+import { createSlice, PayloadAction } from '@redux
+const subscription = useSelector((state: RootState
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
+.then((sub) => {
 async (error: AxiosError) => {
-setOfflineMode: (state, action: PayloadAction<bool
-<Button title="Retry" onPress={() => this.setState
+export const fetchSubscription = async (dispatch: 
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
+} catch (err) {
+} catch (error) {
 Sentry.captureException(error);
-// Log API errors to Sentry
-Sentry.setContext('api', {
 ```
 
 ## 🔧 Common Issues & Solutions
