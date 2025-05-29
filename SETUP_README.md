@@ -6,14 +6,16 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:28:47  
-**Total Files Analyzed:** 14  
-**Technology Stack:** TypeScript
+**Generated on:** 2025-05-29 15:30:44  
+**Total Files Analyzed:** 15  
+**Technology Stack:** PHP, TypeScript
 
 ## 🛠️ Prerequisites
 
 Ensure you have the following installed on your system:
 
+- **PHP** (version 7.4 or higher)
+- **Composer** package manager
 - **Git** version control system
 
 ## 📦 Installation Steps
@@ -51,6 +53,10 @@ nano .env
 ### 4. Project Structure
 
 ```
+├── microwinds-api/
+  ├── app/
+    ├── Http/
+      ├── Controllers/
 ├── microwinds-mobile/
   ├── src/
     ├── components/
