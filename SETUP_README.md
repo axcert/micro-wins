@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:13:27  
-**Total Files Analyzed:** 5  
+**Generated on:** 2025-05-29 15:17:06  
+**Total Files Analyzed:** 8  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -54,8 +54,10 @@ nano .env
 ├── microwinds-mobile/
   ├── src/
     ├── components/
+      ├── analytics/
       ├── common/
     ├── services/
+      ├── analytics/
       ├── subscription/
     ├── types/
 ```
@@ -77,16 +79,16 @@ Based on the codebase analysis, follow these patterns:
 Follow these import styles found in the codebase:
 ```
 const response = await apiClient.get('/api/subscri
-import AsyncStorage from '@react-native-async-stor
-import { Button } from 'react-native-elements';
+const analyticsKeys = keys.filter(key => key.start
+const cached = await this.getCachedData<GoalProgre
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-onPress: () => {
 private handleRetry = async () => {
-private unsubscribeNetInfo: (() => void) | null = 
+datasets: data.datasets.map(dataset => ({
+onPress: () => {
 ```
 
 ### Error Handling
