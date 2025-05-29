@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 12:59:25  
-**Total Files Analyzed:** 9  
+**Generated on:** 2025-05-29 13:01:06  
+**Total Files Analyzed:** 12  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -79,24 +79,24 @@ Based on the codebase analysis, follow these patterns:
 Follow these import styles found in the codebase:
 ```
 import AppNavigator from './navigation/AppNavigato
-import { createSlice, PayloadAction } from '@redux
-const subscription = useSelector((state: RootState
+const response = await apiClient.get<DashboardSumm
+const handleRefresh = () => {
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-.then((sub) => {
 async (error: AxiosError) => {
 export const fetchSubscription = async (dispatch: 
+useEffect(() => {
 ```
 
 ### Error Handling
 Follow these error handling patterns:
 ```
-} catch (err) {
 } catch (error) {
 Sentry.captureException(error);
+// Log API errors to Sentry
 ```
 
 ## 🔧 Common Issues & Solutions
