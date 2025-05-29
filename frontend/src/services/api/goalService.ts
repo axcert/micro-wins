@@ -1,24 +1,14 @@
 // ... existing imports ...
-import { Goal, GoalSummary, MicroStep } from '../../types/GoalTypes';
 
-// ... existing functions ...
-
-export const fetchGoalSummary = async (): Promise<GoalSummary> => {
+export const createGoal = async (title: string, category: string, difficulty: string): Promise<Goal> => {
   try {
-    const response = await axiosInstance.get('/goals/summary');
+    const response = await axiosInstance.post('/goals', { title, category, difficulty });
+    console.log('Goal created successfully');
     return response.data;
   } catch (err) {
-    console.error('Error fetching goal summary:', err);
+    console.error('Error creating goal:', err);
     throw err;
   }
 };
 
-export const fetchTodaysTask = async (): Promise<MicroStep> => {
-  try {
-    const response = await axiosInstance.get('/goals/todays-task');
-    return response.data; 
-  } catch (err) {
-    console.error('Error fetching today\'s task:', err);
-    throw err;
-  }
-};
+// ... existing goal service code ...
