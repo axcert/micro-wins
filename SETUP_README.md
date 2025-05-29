@@ -6,14 +6,18 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 11:00:03  
-**Total Files Analyzed:** 37  
-**Technology Stack:** TypeScript
+**Generated on:** 2025-05-29 11:02:20  
+**Total Files Analyzed:** 40  
+**Technology Stack:** TypeScript, JavaScript/React
 
 ## 🛠️ Prerequisites
 
 Ensure you have the following installed on your system:
 
+- **Node.js** (version 14 or higher)
+- **npm** or **yarn** package manager
+- **Java JDK** (version 8 or higher)
+- **Maven** or **Gradle** build tool
 - **Git** version control system
 
 ## 📦 Installation Steps
@@ -51,6 +55,11 @@ nano .env
 ### 4. Project Structure
 
 ```
+├── backend/
+  ├── src/
+    ├── controllers/
+    ├── routes/
+    ├── services/
 ├── frontend/
   ├── src/
     ├── components/
@@ -61,9 +70,6 @@ nano .env
     ├── services/
       ├── api/
       ├── notifications/
-    ├── store/
-      ├── slices/
-    ├── types/
 ```
 
 ## 🏃‍♂️ Running the Project
@@ -72,7 +78,18 @@ Run commands will be determined based on your specific project setup.
 
 ## 🧪 Testing
 
-Testing commands will depend on your specific testing framework.
+
+### JavaScript/Node.js Testing
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
 
 ## 📝 Development Guidelines
 
@@ -82,17 +99,17 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-const App = () => {
-import { requestNotificationPermission } from './s
-const AUTH_TOKENS_KEY = 'authTokens';
+const goalService = require('../services/goalServi
+const router = express.Router();
+const goals = await goalService.getGoals(userId, p
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
+exports.deleteGoal = async (req, res) => {
+router.post('/:id/activate', auth, (req, res) => g
 export const refreshTokens = async (refreshToken: 
-export const fetchAnalyticsSummary = async () => {
-useEffect(() => {
 ```
 
 ### Error Handling
@@ -123,6 +140,8 @@ try {
 
 ## 📚 Additional Resources
 
+- [Node.js Documentation](https://nodejs.org/docs/)
+- [React Documentation](https://reactjs.org/docs/)
 - [Git Documentation](https://git-scm.com/doc)
 - [Project Repository](https://github.com/your-repo)
 
