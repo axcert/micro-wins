@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:40:12  
-**Total Files Analyzed:** 20  
+**Generated on:** 2025-05-29 15:43:49  
+**Total Files Analyzed:** 21  
 **Technology Stack:** PHP, TypeScript
 
 ## 🛠️ Prerequisites
@@ -66,8 +66,8 @@ nano .env
     ├── services/
       ├── analytics/
       ├── api/
+      ├── notifications/
       ├── subscription/
-    ├── types/
 ```
 
 ## 🏃‍♂️ Running the Project
