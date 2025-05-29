@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 13:12:30  
-**Total Files Analyzed:** 25  
+**Generated on:** 2025-05-29 13:14:27  
+**Total Files Analyzed:** 28  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -51,6 +51,10 @@ nano .env
 ### 4. Project Structure
 
 ```
+├── backend/
+  ├── src/
+    ├── controllers/
+    ├── routes/
 ├── frontend/
   ├── src/
     ├── components/
@@ -78,17 +82,17 @@ Based on the codebase analysis, follow these patterns:
 ### Import Patterns
 Follow these import styles found in the codebase:
 ```
-import { setOfflineMode, setAuthState, logout } fr
-const response = await apiClient.get<DashboardSumm
-const API_BASE_URL = {
+const user = await prisma.user.findFirst({ where: 
+import * as Sentry from '@sentry/react-native';
+const subscription = await stripe.subscriptions.re
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
-export const register = async (dispatch: AppDispat
-async (error: AxiosError) => {
-useEffect(() => {
+// Helper function to get raw request body for web
+export const createSubscription = async (req: Requ
+export const listInvoices = async (req: Request, r
 ```
 
 ### Error Handling
@@ -96,7 +100,7 @@ Follow these error handling patterns:
 ```
 } catch (error) {
 Sentry.captureException(error);
-// Log API errors to Sentry
+Sentry.captureMessage(`DailyTaskScreen Error: ${er
 ```
 
 ## 🔧 Common Issues & Solutions
