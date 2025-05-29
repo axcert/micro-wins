@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 11:02:20  
-**Total Files Analyzed:** 40  
+**Generated on:** 2025-05-29 11:04:21  
+**Total Files Analyzed:** 43  
 **Technology Stack:** TypeScript, JavaScript/React
 
 ## 🛠️ Prerequisites
@@ -108,7 +108,7 @@ const goals = await goalService.getGoals(userId, p
 Follow these function definition styles:
 ```
 exports.deleteGoal = async (req, res) => {
-router.post('/:id/activate', auth, (req, res) => g
+exports.resetPassword = async (req, res) => {
 export const refreshTokens = async (refreshToken: 
 ```
 
