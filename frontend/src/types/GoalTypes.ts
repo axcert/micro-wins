@@ -1,12 +1,24 @@
 export interface GoalData {
   title: string;
-  description: string;
-  category: string;
+  category?: string;
+  difficulty: 'easy' | 'medium' | 'hard'; 
   targetDays: number;
 }
 
 export interface MicroStep {
   id: string;
-  title: string;
+  goalId: string;
+  order: number;
+  title: string; 
   description: string;
+  tips: string[];
+  completedAt?: Date;
+}
+
+export interface GoalStatusResponse {
+  status: 'processing' | 'completed';
+}
+
+export interface MicroStepsResponse {  
+  microSteps: MicroStep[];
 }
