@@ -6,8 +6,8 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-29 15:19:01  
-**Total Files Analyzed:** 9  
+**Generated on:** 2025-05-29 15:21:14  
+**Total Files Analyzed:** 11  
 **Technology Stack:** TypeScript
 
 ## 🛠️ Prerequisites
@@ -58,6 +58,7 @@ nano .env
       ├── common/
     ├── services/
       ├── analytics/
+      ├── api/
       ├── subscription/
     ├── types/
 ```
@@ -79,16 +80,16 @@ Based on the codebase analysis, follow these patterns:
 Follow these import styles found in the codebase:
 ```
 const response = await apiClient.get('/api/subscri
-const analyticsKeys = keys.filter(key => key.start
-const cached = await this.getCachedData<GoalProgre
+const { data, timestamp, expiresAt }: CachedAnalyt
+const cached = await AsyncStorage.getItem(key);
 ```
 
 ### Function Patterns
 Follow these function definition styles:
 ```
 private handleRetry = async () => {
+this.pollingIntervals.forEach((interval) => clearI
 datasets: data.datasets.map(dataset => ({
-onPress: () => {
 ```
 
 ### Error Handling
