@@ -12,9 +12,10 @@ export interface DashboardSummary {
   longestStreak: number;
 }
 
-export interface ProgressChart {
+export interface ProgressDataPoint {
   date: string;
-  value: number;
+  totalSteps: number;
+  completedSteps: number;
 }
 
 export const fetchDashboardSummary = async (dispatch: AppDispatch): Promise<DashboardSummary | null> => {
@@ -23,33 +24,39 @@ export const fetchDashboardSummary = async (dispatch: AppDispatch): Promise<Dash
     return response.data;
   } catch (error) {
     const axiosError = error as AxiosError;
-    if (axiosError.response?.status === 401) {
-      // JWT token expired, log out user
+    
+    if (!axiosError.response) {
       dispatch(setOfflineMode(true));
-    } else {
-      // Log API errors to Sentry  
-      Sentry.captureException(error);
+      return null;
     }
-    return null;
-  }
-};
-
-export const fetchProgressChartData = async (
-  startDate: string, 
-  endDate: string,
-  page = 1,
-  pageSize = 30
-): Promise<ProgressChart[]> => {
-  try {
-    const response = await apiClient.get<ProgressChart[]>(
-      `/analytics/progress?startDate=${startDate}&endDate=${endDate}&page=${page}&pageSize=${pageSize}`
-    );
-    return response.data;
-  } catch (error) {
+    
     // Log API errors to Sentry
     Sentry.captureException(error);
     return Promise.reject(error);
-  }  
+  }
+};
+
+export const fetchProgressHistory = async (
+  dispatch: AppDispatch, 
+  userId: string,
+  dateRange: 'week' | 'month'
+): Promise<ProgressDataPoint[]> => {
+  try {
+    const response = await apiClient.get<ProgressDataPoint[]>(`/analytics/progress/${userId}`, {
+      params: { dateRange },  
+    });
+    return response.data;
+  } catch (error) {
+    const axiosError = error as AxiosError;
+
+    if (!axiosError.response) {
+      dispatch(setOfflineMode(true));
+      return [];
+    }
+    
+    Sentry.captureException(error);
+    return Promise.reject(error);
+  }
 };
 
 export const exportProgressData = async (format: 'csv' | 'json'): Promise<string> => {
@@ -57,7 +64,6 @@ export const exportProgressData = async (format: 'csv' | 'json'): Promise<string
     const response = await apiClient.get<string>(`/analytics/export?format=${format}`);
     return response.data;
   } catch (error) {
-    // Log API errors to Sentry
     Sentry.captureException(error);  
     return Promise.reject(error);
   }
