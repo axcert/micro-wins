@@ -1,40 +1,33 @@
+// Subscription types for premium upgrade flow
 export interface SubscriptionPlan {
   id: string;
   name: string;
   price: number;
   currency: string;
-  interval: 'month' | 'year';
+  period: 'monthly' | 'yearly';
   features: string[];
-  productId: string; // App Store / Google Play product ID
+  productId: string; // IAP product ID
+  isPopular?: boolean;
 }
 
-export interface Subscription {
-  id: string;
-  userId: string;
-  plan: SubscriptionPlan;
-  status: 'active' | 'canceled' | 'expired' | 'past_due';
-  currentPeriodStart: Date;
-  currentPeriodEnd: Date;
-  cancelAtPeriodEnd: boolean;
-  paymentMethod?: {
-    type: string;
-    last4?: string;
-  };
-  createdAt: Date;
-  updatedAt: Date;
+export interface SubscriptionState {
+  isPremium: boolean;
+  plan: SubscriptionPlan | null;
+  expiresAt: string | null;
+  status: 'active' | 'expired' | 'cancelled' | 'pending' | null;
+  autoRenew: boolean;
 }
 
 export interface PurchaseResult {
   success: boolean;
-  subscription?: Subscription;
-  error?: string;
-  transactionId?: string;
+  receipt: string;
+  productId: string;
+  transactionId: string;
+  message?: string;
 }
 
 export interface RestorePurchaseResult {
   success: boolean;
-  subscription?: Subscription;
-  message: string;
+  restoredPurchases: string[];
+  message?: string;
 }
-
-export type SubscriptionStatus = 'free' | 'premium' | 'expired' | 'canceled';
