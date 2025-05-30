@@ -1,0 +1,48 @@
+# Dependencies
+node_modules/
+vendor/
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Laravel
+microwinds-api/storage/*.key
+microwinds-api/public/hot
+microwinds-api/public/storage
+microwinds-api/storage/*.log
+
+# React Native / Expo
+microwinds-mobile/.expo/
+microwinds-mobile/.expo-shared/
+microwinds-mobile/dist/
+microwinds-mobile/*.jks
+microwinds-mobile/*.p8
+microwinds-mobile/*.p12
+microwinds-mobile/*.key
+microwinds-mobile/*.mobileprovision
+microwinds-mobile/*.orig.*
+microwinds-mobile/web-build/
+
+# Testing
+coverage/
+*.log
+
+# Build artifacts
+build/
+dist/
+*.pid
+*.seed
+*.pid.lock
