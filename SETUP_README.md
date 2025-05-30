@@ -6,9 +6,9 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-05-30 07:16:12  
-**Total Files Analyzed:** 1  
-**Technology Stack:** General
+**Generated on:** 2025-05-30 07:18:02  
+**Total Files Analyzed:** 13  
+**Technology Stack:** Node.js, TypeScript, Python, PHP/Composer
 **Project Type:** frontend_spa
 **Architecture Pattern:** unknown
 
@@ -16,6 +16,12 @@ This guide provides step-by-step instructions to set up and run this project loc
 
 Ensure you have the following installed on your system:
 
+- **Node.js** (version 14 or higher)
+- **npm** or **yarn** package manager
+- **Python** (version 3.7 or higher)
+- **pip** package manager
+- **PHP** (version 7.4 or higher)
+- **Composer** package manager
 - **Git** version control system
 
 ## 📦 Installation Steps
@@ -28,7 +34,33 @@ cd <project-directory>
 
 ### 2. Install Dependencies
 
-No specific installation commands detected.
+
+#### Frontend/Node.js Dependencies
+```bash
+# Install Node.js dependencies
+npm install
+
+# Or using yarn
+yarn install
+```
+
+#### Python Dependencies
+```bash
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Or if using setup.py
+pip install -e .
+```
 
 ### 3. Environment Setup
 
@@ -53,16 +85,59 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── microwinds-api/
+├── microwinds-mobile/
+  ├── src/
+    ├── types/
 ```
 
 ## 🏃‍♂️ Running the Project
 
-Run commands will be determined based on your specific project setup.
+
+### Frontend/Node.js Application
+```bash
+# Development mode
+npm start
+# or
+npm run dev
+
+# Production build
+npm run build
+
+# Production mode
+npm run serve
+```
+
+### Python Application
+```bash
+# Activate virtual environment first
+source venv/bin/activate  # On macOS/Linux
+# or venv\Scripts\activate on Windows
+
+# Run the application
+python main.py
+# or
+python app.py
+# or
+flask run
+# or
+python -m uvicorn main:app --reload  # For FastAPI
+```
 
 ## 🧪 Testing
 
-Testing commands will depend on your specific testing framework.
+
+### Python Testing
+```bash
+# Run tests with pytest
+pytest
+
+# Run with coverage
+pytest --cov=.
+
+# Run specific test file
+pytest tests/test_example.py
+```
 
 ## 📝 Development Guidelines
 
@@ -91,6 +166,8 @@ Coding guidelines are being analyzed from the codebase.
 
 ## 📚 Additional Resources
 
+- [Python Documentation](https://docs.python.org/)
+- [Flask Documentation](https://flask.palletsprojects.com/)
 - [Git Documentation](https://git-scm.com/doc)
 - [Project Repository](https://github.com/your-repo)
 
