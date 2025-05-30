@@ -10,7 +10,10 @@
 
 ## 📋 Project Overview
 
-### Project Type
+### Project Tech Stack
+
+**this is a React Native mobile App with Laravel Backend API , Postgresql Database**
+
 - **Application Type**: Mobile App (React Native) with Laravel Backend API
 - **Architecture Pattern**: Client-Server with RESTful API
 - **Frontend**: React Native with Expo
