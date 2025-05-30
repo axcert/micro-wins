@@ -1,0 +1,57 @@
+{
+  "name": "project-app",
+  "version": "1.0.0",
+  "description": "Generated frontend_spa project",
+  "main": "index.js",
+  "scripts": {
+    "start": "next start",
+    "build": "next build",
+    "dev": "next dev",
+    "lint": "next lint"
+  },
+  "keywords": [
+    "nextjs",
+    "testing",
+    "ruby",
+    "mobile",
+    "go",
+    "gin",
+    "react",
+    "javascript",
+    "typescript",
+    "backend",
+    "laravel",
+    "frontend",
+    "php",
+    "python",
+    "testing",
+    "ruby",
+    "nextjs",
+    "mobile",
+    "go",
+    "react",
+    "javascript",
+    "gin",
+    "typescript",
+    "backend",
+    "laravel",
+    "frontend",
+    "php",
+    "python"
+  ],
+  "author": "",
+  "license": "MIT",
+  "dependencies": {
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "next": "^13.5.0",
+    "pg": "^8.11.0",
+    "redis": "^4.6.0"
+  },
+  "devDependencies": {
+    "@types/pg": "^8.10.0",
+    "typescript": "^5.2.0",
+    "@types/node": "^20.5.0",
+    "ts-node": "^10.9.0"
+  }
+}
