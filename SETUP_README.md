@@ -6,9 +6,9 @@
 
 This guide provides step-by-step instructions to set up and run this project locally.
 
-**Generated on:** 2025-06-02 07:10:51  
-**Total Files Analyzed:** 1  
-**Technology Stack:** General
+**Generated on:** 2025-06-02 07:16:20  
+**Total Files Analyzed:** 26  
+**Technology Stack:** Python, JavaScript/React, PHP/Composer, Node.js, TypeScript
 **Project Type:** frontend_spa
 **Architecture Pattern:** unknown
 
@@ -16,6 +16,14 @@ This guide provides step-by-step instructions to set up and run this project loc
 
 Ensure you have the following installed on your system:
 
+- **Node.js** (version 14 or higher)
+- **npm** or **yarn** package manager
+- **Python** (version 3.7 or higher)
+- **pip** package manager
+- **Java JDK** (version 8 or higher)
+- **Maven** or **Gradle** build tool
+- **PHP** (version 7.4 or higher)
+- **Composer** package manager
 - **Git** version control system
 
 ## 📦 Installation Steps
@@ -28,7 +36,42 @@ cd <project-directory>
 
 ### 2. Install Dependencies
 
-No specific installation commands detected.
+
+#### Frontend/Node.js Dependencies
+```bash
+# Install Node.js dependencies
+npm install
+
+# Or using yarn
+yarn install
+```
+
+#### Python Dependencies
+```bash
+# Create virtual environment (recommended)
+python -m venv venv
+
+# Activate virtual environment
+# On Windows:
+venv\Scripts\activate
+# On macOS/Linux:
+source venv/bin/activate
+
+# Install Python dependencies
+pip install -r requirements.txt
+
+# Or if using setup.py
+pip install -e .
+```
+
+#### PHP Dependencies
+```bash
+# Install PHP dependencies
+composer install
+
+# Update dependencies
+composer update
+```
 
 ### 3. Environment Setup
 
@@ -53,22 +96,107 @@ nano .env
 ### 4. Project Structure
 
 ```
-Project structure analysis in progress...
+├── .github/
+  ├── workflows/
+├── microwinds-mobile/
+  ├── src/
+    ├── components/
+      ├── common/
+      ├── dashboard/
+      ├── goals/
+    ├── screens/
+      ├── dashboard/
+    ├── store/
+      ├── slices/
 ```
 
 ## 🏃‍♂️ Running the Project
 
-Run commands will be determined based on your specific project setup.
+
+### Frontend/Node.js Application
+```bash
+# Development mode
+npm start
+# or
+npm run dev
+
+# Production build
+npm run build
+
+# Production mode
+npm run serve
+```
+
+### Python Application
+```bash
+# Activate virtual environment first
+source venv/bin/activate  # On macOS/Linux
+# or venv\Scripts\activate on Windows
+
+# Run the application
+python main.py
+# or
+python app.py
+# or
+flask run
+# or
+python -m uvicorn main:app --reload  # For FastAPI
+```
 
 ## 🧪 Testing
 
-Testing commands will depend on your specific testing framework.
+
+### JavaScript/Node.js Testing
+```bash
+# Run unit tests
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+
+# Run tests in watch mode
+npm run test:watch
+```
+
+### Python Testing
+```bash
+# Run tests with pytest
+pytest
+
+# Run with coverage
+pytest --cov=.
+
+# Run specific test file
+pytest tests/test_example.py
+```
 
 ## 📝 Development Guidelines
 
 Based on the codebase analysis, follow these patterns:
 
-Coding guidelines are being analyzed from the codebase.
+
+### Import Patterns
+Follow these import styles found in the codebase:
+```
+const response = await goalService.getTodaysStep()
+const progressValue = useSharedValue(0);
+from setuptools import setup, find_packages
+```
+
+### Function Patterns
+Follow these function definition styles:
+```
+onStartMission: () => void;
+extraReducers: (builder) => {
+.addCase(fetchUserGoals.fulfilled, (state, action)
+```
+
+### Error Handling
+Follow these error handling patterns:
+```
+try {
+} catch (error: any) {
+```
 
 ## 🔧 Common Issues & Solutions
 
@@ -91,6 +219,10 @@ Coding guidelines are being analyzed from the codebase.
 
 ## 📚 Additional Resources
 
+- [Node.js Documentation](https://nodejs.org/docs/)
+- [React Documentation](https://reactjs.org/docs/)
+- [Python Documentation](https://docs.python.org/)
+- [Flask Documentation](https://flask.palletsprojects.com/)
 - [Git Documentation](https://git-scm.com/doc)
 - [Project Repository](https://github.com/your-repo)
 
