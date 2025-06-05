@@ -1,4 +1,5 @@
-// Design system for the MicroWins app
+import { Platform } from 'react-native';
+
 export const colors = {
   // Primary brand colors
   primary: '#6C63FF',
@@ -131,3 +132,21 @@ export const shadows = {
     elevation: 5,
   },
 };
+
+export const fontFamily = Platform.select({
+  ios: {
+    regular: 'System',
+    medium: 'System',
+    bold: 'System',
+  },
+  android: {
+    regular: 'Roboto',
+    medium: 'Roboto_medium',
+    bold: 'Roboto_bold',
+  },
+  default: {
+    regular: 'System',
+    medium: 'System',
+    bold: 'System',
+  },
+});
