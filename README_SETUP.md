@@ -9,6 +9,13 @@ This document provides detailed setup and installation instructions for the proj
 
 *AI Agent Development Guidelines - This README serves as the primary reference for automated code generation*
 
+## Prerequisites
+
+- **Python** (version 3.8 or higher)
+- **Node.js** (version 14 or higher)
+- **pip** package manager
+- **npm** or **yarn** package manager
+
 ## Installation
 
 1. **Clone the repository:**
@@ -16,6 +23,40 @@ This document provides detailed setup and installation instructions for the proj
    git clone <repository-url>
    cd <project-directory>
    ```
+
+2. **Install npm dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Install pip dependencies:**
+   ```bash
+   pip install -r requirements.txt
+   ```
+
+## Development
+
+**Start the development server:**
+```bash
+npm run dev
+```
+
+**Other development commands:**
+- `npm run start` - ts-node src/index.ts
+
+## Building for Production
+
+**Build the application:**
+```bash
+npm run build
+```
+
+## Testing
+
+**Run tests:**
+```bash
+npm run test
+```
 
 ## Troubleshooting
 
