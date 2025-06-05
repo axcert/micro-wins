@@ -53,7 +53,11 @@ Follow the established code style patterns found in existing code.
 
 ## Dependencies
 
-Dependencies are managed using standard package management tools.
+### Package Management
+
+- **npm** - `package.json`
+- **pip** - `requirements.txt`
+
 
 ## Configuration
 
